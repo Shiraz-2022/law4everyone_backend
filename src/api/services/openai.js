@@ -30,9 +30,9 @@ openaiServices.createResponse = async (prompt) => {
   return response;
 };
 
-openaiServices.createTranslation = async () => {
+openaiServices.createTranslation = async (audioPromptFilePath) => {
   const transcription = await openai.audio.translations.create({
-    file: fs.createReadStream("./files/malayalam/common_voice_ml_38771214.mp3"),
+    file: fs.createReadStream(audioPromptFilePath),
     model: "whisper-1",
     response_format: "text",
   });

@@ -75,10 +75,7 @@ userController.verifyUser = async (req, res) => {
 userController.signin = async (req, res, next) => {
   try {
     const user = req.body.user;
-    const existingUser = await userValidation.checkExistingUser(
-      res,
-      user.email
-    );
+    const existingUser = await userValidation.checkExistingUser(user.email);
 
     if (!existingUser) {
       res.status(HTTP_STATUS_CODES.FORBIDDEN).json({

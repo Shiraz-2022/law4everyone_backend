@@ -1,9 +1,11 @@
 //Libs,configs
 const openai = require("../../config/openai");
 const { v4: uuid } = require("uuid");
+const multer = require("multer");
 
 //Variables
 const openaiController = {};
+const upload = multer({ dest: "uploads/" });
 
 //Helpers
 const { HTTP_STATUS_CODES } = require("../helpers/statusCodes");
@@ -31,7 +33,7 @@ openaiController.postResponse = async (req, res, next) => {
 
     res.status(HTTP_STATUS_CODES.OK).json({
       response: response.choices[0].message.content,
-      chat: newConversation,
+      // chat: newConversation,
     });
   } catch (error) {
     next(error);
@@ -53,15 +55,22 @@ openaiController.postResponse = async (req, res, next) => {
 //   }
 // };
 
-openaiController.translateAudio = async (req, res, next) => {
-  try {
-    const transcription = await openaiServices.createTranslation();
+(openaiController.translateAudio = upload.single("audioPrompt")),
+  async (req, res, next) => {
+    try {
+      const audioPromptFilePath = req.file.path;
+      const transcription = await openaiServices.createTranslation(
+        audioPromptFilePath
+      );
+      const response = await openaiServices.createResponse(transcription);
 
-    res.status(HTTP_STATUS_CODES.OK).json({ transcription: transcription });
-  } catch (error) {
-    next(error);
-  }
-};
+      res
+        .status(HTTP_STATUS_CODES.OK)
+        .json({ response: response.choices[0].message.content });
+    } catch (error) {
+      next(error);
+    }
+  };
 
 openaiController.deleteChat = async (req, res, next) => {
   const { chatId } = req.params;

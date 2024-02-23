@@ -19,6 +19,7 @@
         "jsonwebtoken": "^9.0.2",
         "mongodb": "^6.3.0",
         "mongoose": "^8.1.0",
+        "multer": "^1.4.5-lts.1",
         "nodemailer": "^6.9.9",
         "openai": "^4.26.0",
         "uuid": "^9.0.1"
