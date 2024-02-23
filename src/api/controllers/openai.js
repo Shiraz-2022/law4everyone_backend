@@ -5,7 +5,16 @@ const multer = require("multer");
 
 //Variables
 const openaiController = {};
-const upload = multer({ dest: "uploads/" });
+// const upload = multer({ dest: "uploads/" });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "files/audioPrompt");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + "-" + Date.now());
+  },
+});
+const upload = multer({ storage: storage });
 
 //Helpers
 const { HTTP_STATUS_CODES } = require("../helpers/statusCodes");
@@ -55,22 +64,28 @@ openaiController.postResponse = async (req, res, next) => {
 //   }
 // };
 
-(openaiController.translateAudio = upload.single("audioPrompt")),
-  async (req, res, next) => {
-    try {
-      const audioPromptFilePath = req.file.path;
-      const transcription = await openaiServices.createTranslation(
-        audioPromptFilePath
-      );
-      const response = await openaiServices.createResponse(transcription);
-
-      res
-        .status(HTTP_STATUS_CODES.OK)
-        .json({ response: response.choices[0].message.content });
-    } catch (error) {
-      next(error);
+openaiController.translateAudio = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res
+        .status(HTTP_STATUS_CODES.BAD_REQUEST)
+        .json({ error: "No audio file uploaded" });
     }
-  };
+
+    const audioPromptFilePath = req.file.path;
+    // console.log(audioPromptFilePath);
+    const transcription = await openaiServices.createTranslation(
+      audioPromptFilePath
+    );
+    const response = await openaiServices.createResponse(transcription);
+
+    res
+      .status(HTTP_STATUS_CODES.OK)
+      .json({ response: response.choices[0].message.content });
+  } catch (error) {
+    next(error);
+  }
+};
 
 openaiController.deleteChat = async (req, res, next) => {
   const { chatId } = req.params;
