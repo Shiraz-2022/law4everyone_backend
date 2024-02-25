@@ -1,20 +1,10 @@
 //Libs,configs
-const openai = require("../../config/openai");
 const { v4: uuid } = require("uuid");
-const multer = require("multer");
+const { decode } = require("wav-decoder");
+const fs = require("fs");
 
 //Variables
 const openaiController = {};
-// const upload = multer({ dest: "uploads/" });
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "files/audioPrompt");
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + "-" + Date.now());
-  },
-});
-const upload = multer({ storage: storage });
 
 //Helpers
 const { HTTP_STATUS_CODES } = require("../helpers/statusCodes");
@@ -23,9 +13,18 @@ const JWT = require("../helpers/jwt");
 //Services
 const openaiServices = require("../services/openai");
 
+//Validations
+const openaiValidation = require("../validations/openai");
+
 openaiController.postResponse = async (req, res, next) => {
   try {
     const { chatId, prompt } = req.body;
+    const chat = await openaiValidation.checkIfChatExists(chatId);
+    if (!chat) {
+      return res
+        .status(HTTP_STATUS_CODES.FORBIDDEN)
+        .json({ message: "Please create a chat first" });
+    }
 
     const decodedToken = await JWT.checkJwtStatus(req);
     const response = await openaiServices.createResponse(prompt);
@@ -38,7 +37,7 @@ openaiController.postResponse = async (req, res, next) => {
       prompt: prompt,
       response: response.choices[0].message.content,
     };
-    const newConversation = await openaiServices.storeChat(chatData);
+    await openaiServices.storeChat(chat, chatData);
 
     res.status(HTTP_STATUS_CODES.OK).json({
       response: response.choices[0].message.content,
@@ -49,21 +48,6 @@ openaiController.postResponse = async (req, res, next) => {
   }
 };
 
-// openaiController.transcribeAudio = async (req, res) => {
-//   try {
-//     const transcription = await openai.audio.transcriptions.create({
-//       file: fs.createReadStream("./files/english/harvard.wav"),
-//       model: "whisper-1",
-//       response_format: "text",
-//     });
-
-//     console.log(transcription);
-//     res.status(200).json({ transcription: transcription });
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
-
 openaiController.translateAudio = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -72,11 +56,12 @@ openaiController.translateAudio = async (req, res, next) => {
         .json({ error: "No audio file uploaded" });
     }
 
-    const audioPromptFilePath = req.file.path;
+    // const audioPromptFilePath = req.file.path;
+    const fileData = fs.readFileSync(req.file.path);
+    const audioData = await decode(fileData);
+
     // console.log(audioPromptFilePath);
-    const transcription = await openaiServices.createTranslation(
-      audioPromptFilePath
-    );
+    const transcription = await openaiServices.createTranslation(audioData);
     const response = await openaiServices.createResponse(transcription);
 
     res
@@ -87,10 +72,24 @@ openaiController.translateAudio = async (req, res, next) => {
   }
 };
 
+openaiController.createChat = async (req, res, next) => {
+  try {
+    const chatId = 1;
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const chatData = { userId: decodedToken.userId, chatId: chatId };
+    await openaiServices.createChat(chatData);
+    res
+      .status(HTTP_STATUS_CODES.OK)
+      .json({ message: "Chat has been created succesfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
 openaiController.deleteChat = async (req, res, next) => {
   const { chatId } = req.params;
   try {
-    const chat = await openaiServices.findChat(chatId);
+    const chat = await openaiValidation.checkIfChatExists(chatId);
     if (!chat) {
       return res.status(404).json({ message: "Chat not found" });
     }
@@ -98,6 +97,26 @@ openaiController.deleteChat = async (req, res, next) => {
     res
       .status(HTTP_STATUS_CODES.OK)
       .json({ message: `Chat with id ${chatId} has been deleted succesfully` });
+  } catch (error) {
+    next(error);
+  }
+};
+
+openaiController.getChat = async (req, res, next) => {
+  try {
+    const { chatId } = req.params;
+    const chat = await openaiServices.getChat(chatId);
+    if (!chat) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: `Chat with chat id ${chatId} does not exists ` });
+    }
+    const { prompts, responses } = chat;
+    res.status(HTTP_STATUS_CODES.OK).json({
+      message: "Prompts and responses fetched succesfully",
+      prompts,
+      responses,
+    });
   } catch (error) {
     next(error);
   }

@@ -17,7 +17,11 @@ const upload = multer({ storage: storage });
 //Controllers
 const openaiController = require("../controllers/openai");
 
+//get
+router.get("/getChat/:chatId", openaiController.getChat);
+
 //post
+router.post("/createChat", openaiController.createChat);
 router.post("/getResponse", openaiController.postResponse);
 router.post(
   "/convertAudio",

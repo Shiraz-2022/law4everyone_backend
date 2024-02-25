@@ -10,14 +10,20 @@ const lawbotconversationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  //   promptId: {
-  //     type: String,
-  //     ref: "prompt",
-  //   },
-  //   responseId: {
-  //     type: String,
-  //     ref: "response",
-  //   },
+  prompts: [
+    {
+      type: String,
+      ref: "prompt",
+      required: true,
+    },
+  ],
+  responses: [
+    {
+      type: String,
+      ref: "response",
+      required: true,
+    },
+  ],
 });
 
 const lawbotconversation = new mongoose.model(
