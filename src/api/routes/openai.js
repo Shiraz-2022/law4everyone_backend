@@ -9,7 +9,7 @@ const storage = multer.diskStorage({
     cb(null, "files/audioPrompt");
   },
   filename: (req, file, cb) => {
-    cb(null, file.fieldname + "-" + Date.now());
+    cb(null, file.fieldname + "-" + Date.now() + ".wav");
   },
 });
 const upload = multer({ storage: storage });

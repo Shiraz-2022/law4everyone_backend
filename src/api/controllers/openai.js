@@ -1,7 +1,9 @@
 //Libs,configs
 const { v4: uuid } = require("uuid");
-const { decode } = require("wav-decoder");
+const wav = require("wav-decoder");
 const fs = require("fs");
+const path = require("path");
+const replaceExt = require("replace-ext");
 
 //Variables
 const openaiController = {};
@@ -55,13 +57,11 @@ openaiController.translateAudio = async (req, res, next) => {
         .status(HTTP_STATUS_CODES.BAD_REQUEST)
         .json({ error: "No audio file uploaded" });
     }
+    const audioPromptFilePath = path.resolve(req.file.path);
 
-    // const audioPromptFilePath = req.file.path;
-    const fileData = fs.readFileSync(req.file.path);
-    const audioData = await decode(fileData);
-
-    // console.log(audioPromptFilePath);
-    const transcription = await openaiServices.createTranslation(audioData);
+    const transcription = await openaiServices.createTranslation(
+      audioPromptFilePath
+    );
     const response = await openaiServices.createResponse(transcription);
 
     res
