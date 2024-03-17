@@ -1,5 +1,3 @@
-//Helpers
-const { HTTP_STATUS_CODES } = require("../helpers/statusCodes.js");
 //Models
 const User = require("../models/user.js");
 const Problem = require("../models/problem.js");
@@ -14,19 +12,13 @@ userService.createUser = async (userData) => {
 };
 
 userService.updateVerficationStatus = async (res, token) => {
-  try {
-    const updatedUser = await User.findOneAndUpdate(
-      { verificationToken: token },
-      { verificationToken: null, isVerified: true },
-      { new: true }
-    );
+  const updatedUser = await User.findOneAndUpdate(
+    { verificationToken: token },
+    { verificationToken: null, isVerified: true },
+    { new: true }
+  );
 
-    return updatedUser;
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error updating user verification status" });
-  }
+  return updatedUser;
 };
 
 userService.createProblem = async (problemData) => {

@@ -17,9 +17,13 @@ const addAuthToken = require("./api/middlewares/auth");
 const cookieParser = require("cookie-parser");
 const errorHandler = require("./api/middlewares/errorHandler");
 
-//routes
+//userRoutes
 const userRoutes = require("./api/routes/user");
 const openaiRoutes = require("./api/routes/openai");
+const advocateRoutes = require("./api/routes/advocate");
+
+//adminRoutes
+const adminAdvocateRoutes = require("./api/routes/admin/advocate");
 
 // Middleware registration
 app.use(express.json());
@@ -29,6 +33,10 @@ app.use(addAuthToken);
 // Route registration
 app.use("/user", userRoutes);
 app.use("/lawbot", openaiRoutes);
+app.use("/advocate", advocateRoutes);
+
+//Admin
+app.use("/admin/advocate", adminAdvocateRoutes);
 
 // Error middleware registration
 app.use(errorHandler);

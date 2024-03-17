@@ -16,7 +16,7 @@ const promptSchema = new mongoose.Schema({
     required: true,
   },
   prompt: {
-    type: String,
+    type: mongoose.Schema.Types.Mixed,
     required: true,
   },
   timestamp: {

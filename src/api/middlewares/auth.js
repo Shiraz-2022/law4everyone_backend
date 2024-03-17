@@ -2,15 +2,24 @@
 const JWT = require("../helpers/jwt");
 
 const publicPaths = [
+  //User
+
   "/user/signup",
   "/user/verify",
   "/user/signin",
   "/user/isUserVerified",
+
+  //Advocate
+
+  "/advocate/signup",
+  "/advocate/signin",
+  "/advocate/isUserVerified",
+  "/advocate/verify",
 ];
 
 const addAuthToken = async (req, res, next) => {
   try {
-    if (publicPaths.includes(req.path)) {
+    if (publicPaths.includes(req.path) || req.path.includes("/admin")) {
       next();
     } else if (req.path == "/") {
       res.status(200).json({ message: "This is law4everyone backend" });

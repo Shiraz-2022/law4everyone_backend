@@ -1,9 +1,7 @@
 //Libs,configs
 const { v4: uuid } = require("uuid");
-const wav = require("wav-decoder");
-const fs = require("fs");
 const path = require("path");
-const replaceExt = require("replace-ext");
+const fs = require("fs");
 
 //Variables
 const openaiController = {};
@@ -52,17 +50,42 @@ openaiController.postResponse = async (req, res, next) => {
 
 openaiController.translateAudio = async (req, res, next) => {
   try {
+    const { chatId } = req.body;
+
     if (!req.file) {
       return res
         .status(HTTP_STATUS_CODES.BAD_REQUEST)
         .json({ error: "No audio file uploaded" });
     }
+
+    const chat = await openaiValidation.checkIfChatExists(chatId);
+    if (!chat) {
+      return res
+        .status(HTTP_STATUS_CODES.FORBIDDEN)
+        .json({ message: "Please create a chat first" });
+    }
+
+    const decodedToken = await JWT.checkJwtStatus(req);
+
     const audioPromptFilePath = path.resolve(req.file.path);
+    const audioBuffer = fs.readFileSync(audioPromptFilePath);
 
     const transcription = await openaiServices.createTranslation(
       audioPromptFilePath
     );
     const response = await openaiServices.createResponse(transcription);
+
+    const chatData = {
+      userId: decodedToken.userId,
+      chatId: chatId,
+      promptId: uuid(),
+      responseId: uuid(),
+      prompt: audioBuffer,
+      response: response.choices[0].message.content,
+    };
+    await openaiServices.storeChat(chat, chatData);
+
+    fs.unlinkSync(audioPromptFilePath);
 
     res
       .status(HTTP_STATUS_CODES.OK)

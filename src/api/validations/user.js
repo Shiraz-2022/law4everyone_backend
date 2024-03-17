@@ -1,6 +1,5 @@
 //Helpers
 const hash = require("../helpers/hash.js");
-const HTTP_STATUS_CODES = require("../helpers/statusCodes.js");
 
 //models
 const User = require("../models/user.js");
@@ -14,14 +13,8 @@ userValidation.checkExistingUser = async (email) => {
 };
 
 userValidation.checkVerificationToken = async (res, verificationToken) => {
-  try {
-    const existingUser = await User.findOne({ verificationToken });
-    return existingUser;
-  } catch (error) {
-    res
-      .status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR)
-      .json({ message: "Internal server error" });
-  }
+  const existingUser = await User.findOne({ verificationToken });
+  return existingUser;
 };
 
 userValidation.checkUserPassword = async (user) => {

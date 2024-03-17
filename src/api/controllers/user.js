@@ -37,7 +37,7 @@ userController.signup = async (req, res, next) => {
 
     const verificationLink = `http://localhost:3000/user/verify?token=${verificationToken}`;
 
-    await sendMail(next, email, verificationLink);
+    await sendMail(email, verificationLink);
 
     res.status(HTTP_STATUS_CODES.OK).json({
       message: "User signed up, please verify your email",
@@ -50,7 +50,7 @@ userController.signup = async (req, res, next) => {
   }
 };
 
-userController.verifyUser = async (req, res) => {
+userController.verifyUser = async (req, res, next) => {
   const { token } = req.query;
 
   try {
@@ -66,9 +66,7 @@ userController.verifyUser = async (req, res) => {
       .status(HTTP_STATUS_CODES.OK)
       .json({ message: "Email verification successful" });
   } catch (error) {
-    res
-      .status(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR)
-      .json("Error verifying email:", error);
+    next(error);
   }
 };
 
