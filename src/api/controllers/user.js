@@ -96,6 +96,7 @@ userController.signin = async (req, res, next) => {
       res.status(HTTP_STATUS_CODES.UNAUTHORIZED).json({
         message: "Please verify your email first",
         isSignedIn: false,
+        isEmailVerified: false,
       });
     }
     // console.log(existingUser);
@@ -104,6 +105,7 @@ userController.signin = async (req, res, next) => {
       message: "User signed in succesfully",
       authToken: authToken,
       isSignedIn: true,
+      isEmailVerified: true,
     });
   } catch (error) {
     next(error);
