@@ -15,6 +15,14 @@ advocateValidation.checkExistingAdvocate = async (email, enrollmentNumber) => {
   return existingAdvocate;
 };
 
+advocateValidation.checkUserNameAvaiability = async (userName) => {
+  const existingUserName = await Advocate.findOne({
+    "personalDetails.userName": userName,
+  });
+
+  return existingUserName;
+};
+
 advocateValidation.checkEmailIsVerified = async (email, enrollmentNumber) => {
   const existingAdvocate = await Advocate.findOne({
     "contactDetails.email": email,

@@ -6,6 +6,11 @@ const advocateSchema = new mongoose.Schema({
     required: true,
   },
   personalDetails: {
+    userName: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     name: {
       type: String,
       required: true,
@@ -24,10 +29,12 @@ const advocateSchema = new mongoose.Schema({
     email: {
       type: String,
       required: true,
+      unique: true,
     },
     phone: {
       type: Number,
       required: true,
+      unique: true,
     },
   },
 
@@ -77,6 +84,7 @@ const advocateSchema = new mongoose.Schema({
     enrollmentNumber: {
       type: String,
       required: true,
+      unique: true,
     },
 
     durationOfPractice: {
@@ -96,6 +104,8 @@ const advocateSchema = new mongoose.Schema({
     default: Date.now(),
   },
 });
+
+advocateSchema.index({ "personalDetails.userName": "text" });
 
 const advocate = mongoose.model("advocate", advocateSchema);
 

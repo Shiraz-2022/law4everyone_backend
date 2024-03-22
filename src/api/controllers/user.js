@@ -39,7 +39,7 @@ userController.signup = async (req, res, next) => {
 
     await sendMail(email, verificationLink);
 
-    res.status(HTTP_STATUS_CODES.OK).json({
+    return res.status(HTTP_STATUS_CODES.OK).json({
       message: "User signed up, please verify your email",
       isSignedUp: true,
       // authToken: authToken,
@@ -93,6 +93,9 @@ userController.signin = async (req, res, next) => {
     );
 
     if (!isEmailVerified) {
+      const verificationToken = existingUser.verificationToken;
+      const verificationLink = `http://localhost:3000/user/verify?token=${verificationToken}`;
+      await sendMail(user.email, verificationLink);
       res.status(HTTP_STATUS_CODES.UNAUTHORIZED).json({
         message: "Please verify your email first",
         isSignedIn: false,
@@ -119,19 +122,48 @@ userController.signout = async (req, res) => {
 
 userController.postProblem = async (req, res, next) => {
   try {
-    const { title, description, status } = req.body;
+    const { title, description, status, deadline, problemId } = req.body;
     const decodedToken = await JWT.checkJwtStatus(req);
     const problemData = {
       userId: decodedToken.userId,
-      problemId: uuid(),
+      problemId: problemId,
       title: title,
       description: description,
       status: status,
+      deadline: deadline,
     };
     const newProblem = await userServices.createProblem(problemData);
     res.status(HTTP_STATUS_CODES.OK).json({
       message: "The problem has been saved succesfully",
       problem: newProblem,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.editProblem = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const { problemId } = req.params;
+    const { title, description, status, deadline } = req.body;
+    const problemData = {
+      // userId: decodedToken.userId,
+      // problemId: uuid(),
+      title: title,
+      description: description,
+      status: status,
+      deadline: deadline,
+    };
+
+    const updatedProblem = await userServices.editProblem(
+      decodedToken.userId,
+      problemId,
+      problemData
+    );
+    res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The problem has been updated succesfully",
+      problem: updatedProblem.title,
     });
   } catch (error) {
     next(error);
@@ -155,6 +187,49 @@ userController.checkEmailIsVerified = async (req, res, next) => {
         isEmailVerified: isEmailVerified,
       });
     }
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.getBlogs = async (req, res, next) => {
+  try {
+    const skip = req.body.skip ? Number(req.body.skip) : 0;
+    const limit = req.body.limit ? Number(req.body.limit) : 10;
+    // const decodedToken = JWT.checkJwtStatus(req);
+    const blogs = await userServices.getBlogs(skip, limit);
+
+    if (blogs.length == 0) {
+      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+        message: "No blogs left",
+      });
+    }
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The blogs has been recieved",
+      blogs: blogs,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.searchAdvocate = async (req, res, next) => {
+  try {
+    const { userName } = req.body;
+    const skip = req.body.skip ? Number(req.body.skip) : 0;
+    const limit = req.body.limit ? Number(req.body.limit) : 10;
+
+    const advocate = await userServices.searchAdvocate(userName, skip, limit);
+    if (!advocate) {
+      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+        message: "No advocate found",
+      });
+    }
+    return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+      message: "No advocate found",
+      advocate: advocate,
+    });
   } catch (error) {
     next(error);
   }

@@ -18,6 +18,10 @@ const problemSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  deadline: {
+    type: Date,
+    required: true,
+  },
   status: {
     type: Boolean,
     required: true,

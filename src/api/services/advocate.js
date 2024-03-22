@@ -1,8 +1,6 @@
 //Models
 const Advocate = require("../models/advocate");
-
-//Validatons
-const advocateValidation = require("../validations/advocate");
+const Blog = require("../models/blogs");
 
 //Variables
 const advocateService = {};
@@ -42,6 +40,36 @@ advocateService.updateAdvcoateVerificationStatus = async (
   );
 
   return updatedUser;
+};
+
+advocateService.createBlog = async (blogData) => {
+  const newBlog = new Blog(blogData);
+  await newBlog.save();
+  return newBlog;
+};
+
+advocateService.editBlog = async (advocateId, blogId, blogData) => {
+  const { title, description } = blogData;
+  const updatedBlog = Blog.findOneAndUpdate(
+    {
+      advocateId: advocateId,
+      blogId: blogId,
+    },
+    {
+      title: title,
+      description: description,
+    }
+  );
+
+  // console.log(updatedProblem);
+
+  return updatedBlog;
+};
+
+advocateService.deleteAccount = async (advocateId) => {
+  await Blog.deleteMany({ advocateId: advocateId });
+
+  await Advocate.deleteOne({ id: advocateId });
 };
 
 module.exports = advocateService;
