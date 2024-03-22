@@ -45,8 +45,15 @@ const advocateSchema = new mongoose.Schema({
 
   location: {
     type: {
-      latitude: Number,
-      longitude: Number,
+      geometry: {
+        coordinates: {
+          latitude: Number,
+          longitude: Number,
+        },
+      },
+      properties: {
+        name: String,
+      },
     },
   },
 

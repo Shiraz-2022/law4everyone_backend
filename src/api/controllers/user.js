@@ -256,13 +256,13 @@ userController.searchAdvocate = async (req, res, next) => {
     const limit = req.body.limit ? Number(req.body.limit) : 10;
 
     const advocate = await userServices.searchAdvocate(userName, skip, limit);
-    if (!advocate) {
+    if (advocate.length == 0) {
       return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
         message: "No advocate found",
       });
     }
-    return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
-      message: "No advocate found",
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The advocates found are:",
       advocate: advocate,
     });
   } catch (error) {
@@ -270,12 +270,19 @@ userController.searchAdvocate = async (req, res, next) => {
   }
 };
 
-userController.searchByLocation = async (req, res, next) => {
-  try {
-    //
-  } catch (error) {
-    next(error);
-  }
-};
+// userController.searchByLocation = async (req, res, next) => {
+//   try {
+//     const { maxDistance, latitude, longitude } = req.body;
+//     const limit = req.body.limit ? req.body.limit : 5;
+
+//     const advocates = userServices.searchByLocation(
+//       maxDistance,
+//       latitude,
+//       longitude
+//     );
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 module.exports = userController;

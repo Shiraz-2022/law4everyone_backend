@@ -196,17 +196,18 @@ advocateController.signin = async (req, res, next) => {
 
 advocateController.postBlog = async (req, res, next) => {
   try {
-    const { title, description, blogId } = req.body;
+    const { title, description, tags } = req.body;
     const decodedToken = await JWT.checkJwtStatus(req);
     const imagePath = req.file.path;
     const image = fs.readFileSync(imagePath);
 
     const blogData = {
       advocateId: decodedToken.userId,
-      blogId: blogId,
+      blogId: uuid(),
       title: title,
       description: description,
       image: image,
+      tags: tags,
     };
 
     const newBlog = await advocateService.createBlog(blogData);

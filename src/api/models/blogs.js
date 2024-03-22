@@ -21,6 +21,9 @@ const blogSchema = new mongoose.Schema({
   image: {
     type: mongoose.Schema.Types.Mixed,
   },
+  tags: {
+    type: [String],
+  },
 });
 
 const blog = new mongoose.model("blog", blogSchema);
