@@ -12,6 +12,8 @@ const userController = {};
 const userServices = require("../services/user");
 const userValidation = require("../validations/user");
 
+//////////////// signup,signin ////////////////
+
 userController.signup = async (req, res, next) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -115,18 +117,56 @@ userController.signin = async (req, res, next) => {
   }
 };
 
+userController.checkEmailIsVerified = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    // console.log(email);
+    const isEmailVerified = await userValidation.checkEmailIsVerified(email);
+    // console.log(isEmailVerified);
+    if (isEmailVerified) {
+      res.status(HTTP_STATUS_CODES.OK).json({
+        message: "Email has been verified succesfully",
+        isEmailVerified: isEmailVerified,
+      });
+    } else {
+      res.status(HTTP_STATUS_CODES.OK).json({
+        message: "Please verify your email and try again",
+        isEmailVerified: isEmailVerified,
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 userController.signout = async (req, res) => {
   // res.clearCookie("userAuthToken");
   res.json({ message: "User has been signed out" });
 };
 
+//////////////// problems ////////////////
+
+userController.getProblems = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const problems = await userServices.getProblems(decodedToken.userId);
+
+    res.status(HTTP_STATUS_CODES.OK).json({
+      message: "Problems recieved succesfully",
+      problems: problems,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 userController.postProblem = async (req, res, next) => {
   try {
-    const { title, description, status, deadline, problemId } = req.body;
+    const { title, description, status, deadline } = req.body;
     const decodedToken = await JWT.checkJwtStatus(req);
     const problemData = {
       userId: decodedToken.userId,
-      problemId: problemId,
+      problemId: uuid(),
       title: title,
       description: description,
       status: status,
@@ -163,34 +203,27 @@ userController.editProblem = async (req, res, next) => {
     );
     res.status(HTTP_STATUS_CODES.OK).json({
       message: "The problem has been updated succesfully",
-      problem: updatedProblem.title,
+      problem: updatedProblem,
     });
   } catch (error) {
     next(error);
   }
 };
 
-userController.checkEmailIsVerified = async (req, res, next) => {
+userController.deleteProblem = async (req, res, next) => {
   try {
-    const { email } = req.body;
-    // console.log(email);
-    const isEmailVerified = await userValidation.checkEmailIsVerified(email);
-    // console.log(isEmailVerified);
-    if (isEmailVerified) {
-      res.status(HTTP_STATUS_CODES.OK).json({
-        message: "Email has been verified succesfully",
-        isEmailVerified: isEmailVerified,
-      });
-    } else {
-      res.status(HTTP_STATUS_CODES.OK).json({
-        message: "Please verify your email and try again",
-        isEmailVerified: isEmailVerified,
-      });
-    }
+    const { problemId } = req.body;
+    await userServices.deleteProblem(problemId);
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The problem has been deleted succesfully",
+    });
   } catch (error) {
     next(error);
   }
 };
+
+//////////////// blogs ////////////////
 
 userController.getBlogs = async (req, res, next) => {
   try {
@@ -214,6 +247,8 @@ userController.getBlogs = async (req, res, next) => {
   }
 };
 
+//////////////// advocates ////////////////
+
 userController.searchAdvocate = async (req, res, next) => {
   try {
     const { userName } = req.body;
@@ -230,6 +265,14 @@ userController.searchAdvocate = async (req, res, next) => {
       message: "No advocate found",
       advocate: advocate,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.searchByLocation = async (req, res, next) => {
+  try {
+    //
   } catch (error) {
     next(error);
   }

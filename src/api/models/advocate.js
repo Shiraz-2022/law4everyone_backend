@@ -105,7 +105,7 @@ const advocateSchema = new mongoose.Schema({
   },
 });
 
-advocateSchema.index({ "personalDetails.userName": "text" });
+// advocateSchema.index({ "personalDetails.userName": "text" });
 
 const advocate = mongoose.model("advocate", advocateSchema);
 

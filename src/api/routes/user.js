@@ -6,6 +6,7 @@ const userController = require("../controllers/user");
 router.get("/verify", userController.verifyUser);
 router.get("/getBlogs", userController.getBlogs);
 router.get("/searchAdvocate", userController.searchAdvocate);
+router.get("/getProblems", userController.getProblems);
 
 //Post
 router.post("/signup", userController.signup);
@@ -16,5 +17,8 @@ router.post("/postProblem", userController.postProblem);
 
 //Put
 router.put("/editProblem/:problemId", userController.editProblem);
+
+//delete
+router.delete("/deleteProblem", userController.deleteProblem);
 
 module.exports = router;

@@ -3,8 +3,6 @@ const User = require("../models/user.js");
 const Problem = require("../models/problem.js");
 const Blog = require("../models/blogs.js");
 const Advocate = require("../models/advocate.js");
-const advocate = require("../models/advocate.js");
-
 //Variables
 const userService = {};
 
@@ -49,6 +47,16 @@ userService.editProblem = async (userId, problemId, problemData) => {
   return updatedProblem;
 };
 
+userService.getProblems = async (userId) => {
+  const problemsBeforeSort = await Problem.find({ userId: userId });
+  const problems = problemsBeforeSort.sort((a, b) => a.timeStamp - b.timeStamp);
+  return problems;
+};
+
+userService.deleteProblem = async (problemId) => {
+  await Problem.deleteOne({ problemId: problemId });
+};
+
 userService.getBlogs = async (skip, limit) => {
   const blogs = await Blog.find({}).skip(skip).limit(limit);
 
@@ -56,15 +64,10 @@ userService.getBlogs = async (skip, limit) => {
 };
 
 userService.searchAdvocate = async (userName, skip, limit) => {
-  console.log(userName);
   const regexPattern = new RegExp(`^${userName}`, "i");
-  const advocate = await Advocate.find(
-    { $text: { $search: userName } },
-    { score: { $meta: "textScore" } }
-  )
-    .where(userName)
-    .regex(regexPattern)
-    .sort({ score: { $meta: "textScore" } })
+  const advocate = await Advocate.find({
+    "personalDetails.userName": { $regex: regexPattern },
+  })
     .skip(skip)
     .limit(limit);
 
