@@ -4,25 +4,16 @@ const router = express.Router();
 const multer = require("multer");
 
 //Variables
-const blogImageStorage = multer.diskStorage({
+const signupStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "files/blogImage");
+    cb(null, "files/advocate");
   },
   filename: (req, file, cb) => {
-    cb(null, file.fieldname + "-" + Date.now() + ".png");
+    cb(null, Date.now() + "-" + file.originalname);
   },
 });
-const uploadBlogImage = multer({ storage: blogImageStorage });
 
-const certificateStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "files/certificate");
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + "-" + Date.now() + ".pdf");
-  },
-});
-const uploadCertificate = multer({ storage: certificateStorage });
+const uploadSignup = multer({ storage: signupStorage });
 
 //Controllers
 const advocateController = require("../controllers/advocate");
@@ -35,13 +26,13 @@ router.get("/getProblems", advocateController.getProblems);
 //Post
 router.post(
   "/signup",
-  uploadCertificate.single("enrollmentCertificate"),
+  uploadSignup.array("files", 2),
   advocateController.signup
 );
 router.post("/signin", advocateController.signin);
 router.post(
   "/postBlog",
-  uploadBlogImage.single("image"),
+  uploadSignup.single("image"),
   advocateController.postBlog
 );
 router.post("/deleteAccount", advocateController.deleteAccount);

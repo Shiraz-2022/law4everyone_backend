@@ -26,21 +26,25 @@ advocateController.signup = async (req, res, next) => {
   try {
     const {
       userName,
-      name,
-      email,
-      password,
-      phone,
+      name, //
+      email, //
+      password, //
+      phone, //
       dateOfBirth,
       address,
-      enrollmentNumber,
-      durationOfPractice,
-      areasOfExpertise,
+      enrollmentNumber, //
+      durationOfPractice, //
+      areasOfExpertise, //
       nameOfUniversity,
       yearOfGraduation,
+      bio,
     } = req.body;
 
-    const certificatePath = req.file.path;
+    const certificatePath = req.files[0].path;
     const enrollmentCertificate = fs.readFileSync(certificatePath);
+
+    const profilePath = req.files[1].path;
+    const profileImage = fs.readFileSync(profilePath);
 
     const existingAdvocate = await advocateValidation.checkExistingAdvocate(
       email,
@@ -75,6 +79,8 @@ advocateController.signup = async (req, res, next) => {
         name: name,
         dateOfBirth: dateOfBirth,
         address: address,
+        bio: bio,
+        profileImage: profileImage,
       },
       contactDetails: {
         email: email,
@@ -98,7 +104,7 @@ advocateController.signup = async (req, res, next) => {
       // location: location,
     });
 
-    fs.unlinkSync(req.file.path);
+    // fs.unlinkSync(req.file.path);
 
     const verificationLink = `http://localhost:3000/advocate/verify?token=${verificationToken}`;
 

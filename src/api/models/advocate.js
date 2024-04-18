@@ -26,6 +26,13 @@ const advocateSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
+    bio: {
+      type: String,
+    },
+    profileImage: {
+      type: mongoose.Schema.Types.Mixed,
+      // required: true,
+    },
   },
 
   contactDetails: {
