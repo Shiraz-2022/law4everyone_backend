@@ -1,6 +1,7 @@
 //Models
 const Advocate = require("../models/advocate");
 const Blog = require("../models/blogs");
+const Problem = require("../models/problem");
 
 //Variables
 const advocateService = {};
@@ -58,7 +59,8 @@ advocateService.editBlog = async (advocateId, blogId, blogData) => {
     {
       title: title,
       description: description,
-    }
+    },
+    { new: true }
   );
 
   // console.log(updatedProblem);
@@ -69,7 +71,18 @@ advocateService.editBlog = async (advocateId, blogId, blogData) => {
 advocateService.deleteAccount = async (advocateId) => {
   await Blog.deleteMany({ advocateId: advocateId });
 
-  await Advocate.deleteOne({ id: advocateId });
+  await Advocate.deleteOne({ advocateId: advocateId });
+};
+
+advocateService.getProfileDetails = async (advocateId) => {
+  console.log(advocateId);
+  return await Advocate.findOne({ advocateId: advocateId });
+};
+
+advocateService.getProblems = async (skip, limit) => {
+  const problems = await Problem.find({}).skip(skip).limit(limit);
+
+  return problems;
 };
 
 module.exports = advocateService;

@@ -5,6 +5,9 @@ const advocateSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  socketId: {
+    type: String,
+  },
   personalDetails: {
     userName: {
       type: String,

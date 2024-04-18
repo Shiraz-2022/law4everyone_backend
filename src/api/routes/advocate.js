@@ -29,6 +29,8 @@ const advocateController = require("../controllers/advocate");
 
 //Get
 router.get("/verify", advocateController.verifyUser);
+router.get("/getProfileDetails", advocateController.getProfileDetails);
+router.get("/getProblems", advocateController.getProblems);
 
 //Post
 router.post(
@@ -43,8 +45,9 @@ router.post(
   advocateController.postBlog
 );
 router.post("/deleteAccount", advocateController.deleteAccount);
+router.post("/sendCaseAcceptRequest", advocateController.sendCaseAcceptRequest);
 
 //Put
-router.put("/editBlog/:blogId", advocateController.editBlog);
+router.put("/editBlog", advocateController.editBlog);
 
 module.exports = router;

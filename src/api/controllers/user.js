@@ -11,6 +11,7 @@ const { HTTP_STATUS_CODES } = require("../helpers/statusCodes");
 const userController = {};
 const userServices = require("../services/user");
 const userValidation = require("../validations/user");
+const user = require("../models/user");
 
 //////////////// signup,signin ////////////////
 
@@ -28,6 +29,7 @@ userController.signup = async (req, res, next) => {
     const hashedPassword = await hash.hashPassword(password);
     const newUser = await userServices.createUser({
       userId: uuid(),
+      socketId: uuid(),
       name,
       email,
       password: hashedPassword,
@@ -35,7 +37,6 @@ userController.signup = async (req, res, next) => {
       verificationToken,
       // location: location,
     });
-    // const authToken = await JWT.generateAndStoreJwt(res, newUser);
 
     const verificationLink = `http://localhost:3000/user/verify?token=${verificationToken}`;
 
@@ -105,7 +106,7 @@ userController.signin = async (req, res, next) => {
       });
     }
     // console.log(existingUser);
-    const authToken = await JWT.generateAndStoreJwt(existingUser);
+    const authToken = await JWT.generateAndStoreJwtUser(existingUser);
     res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
       message: "User signed in succesfully",
       authToken: authToken,
@@ -140,7 +141,6 @@ userController.checkEmailIsVerified = async (req, res, next) => {
 };
 
 userController.signout = async (req, res) => {
-  // res.clearCookie("userAuthToken");
   res.json({ message: "User has been signed out" });
 };
 

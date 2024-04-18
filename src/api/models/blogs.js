@@ -21,6 +21,37 @@ const blogSchema = new mongoose.Schema({
   image: {
     type: mongoose.Schema.Types.Mixed,
   },
+  comments: {
+    commentCounts: {
+      type: Number,
+      default: 0,
+    },
+    comment: {
+      type: String,
+    },
+    commentedBy: {
+      type: [
+        {
+          type: String,
+          ref: "user",
+        },
+      ],
+    },
+  },
+  likes: {
+    likeCounts: {
+      type: Number,
+      default: 0,
+    },
+    likedBy: {
+      type: [
+        {
+          type: String,
+          ref: "user",
+        },
+      ],
+    },
+  },
   tags: {
     type: [String],
   },

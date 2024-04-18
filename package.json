@@ -23,6 +23,10 @@
         "nodemailer": "^6.9.9",
         "openai": "^4.26.0",
         "path": "^0.12.7",
+        "socket.io": "^4.7.5",
         "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "eslint": "^9.0.0"
     }
 }

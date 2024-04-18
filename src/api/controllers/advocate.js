@@ -2,6 +2,9 @@
 const { v4: uuid } = require("uuid");
 const fs = require("fs");
 
+//configs
+const { getIoInstance } = require("../../config/socketio");
+
 //Variables
 const advocateController = {};
 
@@ -16,6 +19,8 @@ const advocateValidation = require("../validations/advocate");
 
 //Services
 const advocateService = require("../services/advocate");
+const userService = require("../services/user");
+const { timeStamp } = require("console");
 
 advocateController.signup = async (req, res, next) => {
   try {
@@ -137,9 +142,10 @@ advocateController.verifyUser = async (req, res, next) => {
 advocateController.signin = async (req, res, next) => {
   try {
     const advocate = req.body.advocate;
+    const { email, enrollmentNumber } = advocate;
     const existingAdvocate = await advocateValidation.checkExistingAdvocate(
-      advocate.email,
-      advocate.enrollmentNumber
+      email,
+      enrollmentNumber
     );
 
     if (!existingAdvocate) {
@@ -150,8 +156,8 @@ advocateController.signin = async (req, res, next) => {
     }
 
     const isAdvocateVerified = await advocateValidation.checkAdvocateIsVerified(
-      advocate.email,
-      advocate.enrollmentNumber
+      email,
+      enrollmentNumber
     );
 
     if (!isAdvocateVerified) {
@@ -172,18 +178,22 @@ advocateController.signin = async (req, res, next) => {
       });
     }
     const isEmailVerified = await advocateValidation.checkEmailIsVerified(
-      advocate.email,
-      advocate.enrollmentNumber
+      email,
+      enrollmentNumber
     );
 
     if (!isEmailVerified) {
+      const verificationToken =
+        existingAdvocate.verificationDetails.verificationToken;
+      const verificationLink = `http://localhost:3000/advocate/verify?token=${verificationToken}`;
+      await sendMail(email, verificationLink);
       return res.status(HTTP_STATUS_CODES.UNAUTHORIZED).json({
         message: "Please verify your email first",
         isSignedIn: false,
       });
     }
     // console.log(existingUser);
-    const authToken = await JWT.generateAndStoreJwt(existingAdvocate);
+    const authToken = await JWT.generateAndStoreJwtAdvocate(existingAdvocate);
     res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
       message: "Advocate signed in succesfully",
       authToken: authToken,
@@ -202,7 +212,7 @@ advocateController.postBlog = async (req, res, next) => {
     const image = fs.readFileSync(imagePath);
 
     const blogData = {
-      advocateId: decodedToken.userId,
+      advocateId: decodedToken.advocateId,
       blogId: uuid(),
       title: title,
       description: description,
@@ -213,7 +223,7 @@ advocateController.postBlog = async (req, res, next) => {
     const newBlog = await advocateService.createBlog(blogData);
     fs.unlinkSync(req.file.path);
 
-    res.status(HTTP_STATUS_CODES.OK).json({
+    return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The blog has been saved succesfully",
       blog: newBlog,
     });
@@ -225,19 +235,26 @@ advocateController.postBlog = async (req, res, next) => {
 advocateController.editBlog = async (req, res, next) => {
   try {
     const decodedToken = await JWT.checkJwtStatus(req);
-    const { blogId } = req.params;
-    const { title, description } = req.body;
+    const { title, description, blogId } = req.body;
     const blogData = {
       title: title,
       description: description,
     };
 
     const updatedBlog = await advocateService.editBlog(
-      decodedToken.userId,
+      decodedToken.advocateId,
       blogId,
       blogData
     );
-    res.status(HTTP_STATUS_CODES.OK).json({
+
+    if (!updatedBlog) {
+      return res.status(HTTP_STATUS_CODES.OK).json({
+        message: "The blog does not exist",
+        // blog: updatedBlog,
+      });
+    }
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The blog has been updated succesfully",
       // blog: updatedBlog,
     });
@@ -249,12 +266,117 @@ advocateController.editBlog = async (req, res, next) => {
 advocateController.deleteAccount = async (req, res, next) => {
   try {
     const decodedToken = await JWT.checkJwtStatus(req);
-    await advocateService.deleteAccount(decodedToken.userId);
+    await advocateService.deleteAccount(decodedToken.advocateId);
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The account has been deleted succesfully",
       // blog: updatedBlog,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.getProfileDetails = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const advocate = await advocateService.getProfileDetails(
+      decodedToken.advocateId
+    );
+    if (!advocate) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "The advocate doesnt exist" });
+    }
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The profile details have been fetched succesfully",
+      advocate: advocate,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.getProblems = async (req, res, next) => {
+  try {
+    const skip = req.body.skip ? Number(req.body.skip) : 0;
+    const limit = req.body.limit ? Number(req.body.limit) : 10;
+    // const decodedToken = JWT.checkJwtStatus(req);
+    const problems = await advocateService.getProblems(skip, limit);
+
+    if (problems.length == 0) {
+      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+        message: "The problems doesnt exist",
+      });
+    }
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The problems have been fetched succesfully",
+      problems,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.sendCaseAcceptRequest = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const { userId } = req.body;
+    const advocateDetails = await advocateService.getProfileDetails(
+      decodedToken.advocateId
+    );
+    const userDetails = await userService.getUserDetails(userId);
+
+    if (!userDetails) {
+      return res
+        .status(HTTP_STATUS_CODES.OK)
+        .json({ message: "The user does not exist" });
+    }
+
+    const io = getIoInstance();
+
+    const { personalDetails, contactDetails, workDetails, educationDetails } =
+      advocateDetails;
+
+    const { userName, name, address } = personalDetails;
+    const { email, phone } = contactDetails;
+    const { nameOfUniversity, yearOfGraduation } = educationDetails;
+    const { durationOfPractice, areasOfExpertise } = workDetails;
+
+    const advocateInfo = {
+      userName,
+      name,
+      address,
+      email,
+      phone,
+      nameOfUniversity,
+      yearOfGraduation,
+      durationOfPractice,
+      areasOfExpertise,
+    };
+
+    const notification = {
+      title: "title1",
+      description: "desc1",
+      data: advocateInfo,
+      timeStamp: Date.now(),
+    };
+
+    const updatedNotification = await userService.storeNotification(
+      userId,
+      notification
+    );
+
+    io.to(userDetails.socketId).emit("caseAcceptRequest", advocateInfo, userId);
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The case accept request has been sent succesfully",
+      notification: updatedNotification,
+    });
+
+    // console.log("Received: ", advocateDetails.advocateId);
   } catch (error) {
     next(error);
   }

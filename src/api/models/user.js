@@ -5,6 +5,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  socketId: {
+    type: String,
+  },
   name: {
     type: String,
     required: true,
@@ -34,6 +37,15 @@ const userSchema = new mongoose.Schema({
   verificationToken: {
     type: String,
   },
+  notifications: [
+    {
+      title: String,
+      description: String,
+      data: mongoose.Schema.Types.Mixed,
+      timeStamp: Date,
+      read: Boolean,
+    },
+  ],
 });
 
 const user = mongoose.model("user", userSchema);

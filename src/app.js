@@ -1,7 +1,13 @@
 const express = require("express");
 const app = express();
+const http = require("http");
+const server = http.createServer(app);
 const dotenv = require("dotenv");
 const process = require("process");
+
+const { initializeSocketServer } = require("./config/socketio");
+
+initializeSocketServer(server);
 
 const port = process.env.PORT || 3000;
 
@@ -42,6 +48,6 @@ app.use("/admin/advocate", adminAdvocateRoutes);
 app.use(errorHandler);
 
 // Start the server
-app.listen(port, () => {
+server.listen(port, () => {
   console.log("Listening on port " + port);
 });

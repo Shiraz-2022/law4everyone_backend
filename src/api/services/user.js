@@ -58,10 +58,15 @@ userService.deleteProblem = async (problemId) => {
 };
 
 userService.getBlogs = async (skip, limit) => {
-  const blogs = await Blog.find({}).skip(skip).limit(limit);
+  const blogs = await Blog.find({})
+    .skip(skip)
+    .limit(limit)
+    .populate("advocateId");
 
   return blogs;
 };
+
+//advocates
 
 userService.searchAdvocate = async (userName, skip, limit) => {
   const regexPattern = new RegExp(`^${userName}`, "i");
@@ -73,5 +78,39 @@ userService.searchAdvocate = async (userName, skip, limit) => {
 
   return advocate;
 };
+
+userService.storeSocketId = async (userId, socketId) => {
+  const updatedUser = await User.findOneAndUpdate(
+    { userId: userId },
+    { socketId: socketId },
+    { new: true }
+  );
+
+  return updatedUser;
+};
+
+userService.getUserDetails = async (userId) => {
+  const existingUser = await User.findOne({ userId: userId });
+
+  return existingUser;
+};
+
+userService.storeNotification = async (userId, notification) => {
+  const updatedUser = await User.findOneAndUpdate(
+    { userId: userId },
+    { $push: { notifications: notification } },
+    { new: true }
+  );
+
+  return updatedUser;
+};
+
+// userService.getAdvocate = async (advocateId) => {
+//   const advocate = await Advocate.find({
+//     id: { advocateId },
+//   });
+
+//   return advocate;
+// };
 
 module.exports = userService;
