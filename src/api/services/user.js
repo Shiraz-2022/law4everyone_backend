@@ -58,11 +58,8 @@ userService.deleteProblem = async (problemId) => {
 };
 
 userService.getBlogs = async (skip, limit) => {
-  const blogs = await Blog.find({})
-    .skip(skip)
-    .limit(limit)
-    .populate("advocateId");
-
+  const blogs = await Blog.find({}).skip(skip).limit(limit);
+  // .populate("advocateId");
   return blogs;
 };
 
