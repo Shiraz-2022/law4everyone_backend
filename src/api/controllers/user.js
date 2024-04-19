@@ -227,8 +227,10 @@ userController.deleteProblem = async (req, res, next) => {
 
 userController.getBlogs = async (req, res, next) => {
   try {
-    const skip = req.query.skip ? Number(req.body.skip) : 0;
-    const limit = req.query.limit ? Number(req.body.limit) : 10;
+    const skip = req.query.skip ? Number(req.query.skip) : 0;
+    const limit = req.query.limit ? Number(req.query.limit) : 10;
+
+    console.log(skip);
     // const decodedToken = JWT.checkJwtStatus(req);
     const blogs = await userServices.getBlogs(skip, limit);
 
