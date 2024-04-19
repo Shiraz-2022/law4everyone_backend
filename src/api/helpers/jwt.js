@@ -31,10 +31,10 @@ JWT.generateAndStoreJwtAdvocate = async (advocate) => {
       name: advocate.name,
       email: advocate.email,
     },
-    process.env.JWT_SECRET_KEY,
-    {
-      expiresIn: 15 * 24 * 60 * 60,
-    }
+    process.env.JWT_SECRET_KEY
+    // {
+    //   expiresIn: 15 * 24 * 60 * 60,
+    // }
   );
   // res.cookie("userAuthToken", token, {
   //   httpOnly: true,

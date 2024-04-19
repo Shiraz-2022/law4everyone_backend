@@ -26,15 +26,15 @@ advocateController.signup = async (req, res, next) => {
   try {
     const {
       userName,
-      name, //
-      email, //
-      password, //
-      phone, //
+      name,
+      email,
+      password,
+      phone,
       dateOfBirth,
       address,
-      enrollmentNumber, //
-      durationOfPractice, //
-      areasOfExpertise, //
+      enrollmentNumber,
+      durationOfPractice,
+      areasOfExpertise,
       nameOfUniversity,
       yearOfGraduation,
       bio,
@@ -104,7 +104,8 @@ advocateController.signup = async (req, res, next) => {
       // location: location,
     });
 
-    // fs.unlinkSync(req.file.path);
+    fs.unlinkSync(req.files[0].path);
+    fs.unlinkSync(req.files[1].path);
 
     const verificationLink = `http://localhost:3000/advocate/verify?token=${verificationToken}`;
 
