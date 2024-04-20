@@ -230,8 +230,6 @@ userController.getBlogs = async (req, res, next) => {
     const skip = req.query.skip ? Number(req.query.skip) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 10;
 
-    console.log(skip);
-    // const decodedToken = JWT.checkJwtStatus(req);
     const blogs = await userServices.getBlogs(skip, limit);
 
     if (blogs.length == 0) {

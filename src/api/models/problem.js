@@ -28,6 +28,7 @@ const problemSchema = new mongoose.Schema({
   },
   timeStamp: {
     type: Date,
+    required: true,
     default: Date.now(),
   },
 });

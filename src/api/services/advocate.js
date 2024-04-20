@@ -82,6 +82,8 @@ advocateService.getProfileDetails = async (advocateId) => {
 advocateService.getProblems = async (skip, limit) => {
   const problems = await Problem.find({}).skip(skip).limit(limit);
 
+  problems.sort((a, b) => a.timestamp - b.timestamp);
+
   return problems;
 };
 

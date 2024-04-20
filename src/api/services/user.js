@@ -58,8 +58,13 @@ userService.deleteProblem = async (problemId) => {
 };
 
 userService.getBlogs = async (skip, limit) => {
-  const blogs = await Blog.find({}).skip(skip).limit(limit);
-  // .populate("advocateId");
+  const blogs = await Blog.find({}).skip(skip).limit(limit).populate({
+    path: "advocates",
+    select: "personalDetails.userName personalDetails.profileImage",
+  });
+
+  blogs.sort((a, b) => a.timeStamp - b.timeStamp);
+
   return blogs;
 };
 
