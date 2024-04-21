@@ -283,7 +283,9 @@ userController.searchAdvocate = async (req, res, next) => {
 
 userController.commentOnBlog = async (req, res, next) => {
   try {
-    const { blogId, comment, userId } = req.body;
+    const { blogId, comment } = req.body;
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const userId = decodedToken.userId;
 
     const existingUser = await userService.getUserDetails(userId);
 
@@ -323,7 +325,9 @@ userController.commentOnBlog = async (req, res, next) => {
 
 userController.likeOrUnlikeBlog = async (req, res, next) => {
   try {
-    const { blogId, userId } = req.body;
+    const { blogId } = req.body;
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const userId = decodedToken.userId;
 
     const io = getIoInstance();
 
@@ -357,7 +361,7 @@ userController.likeOrUnlikeBlog = async (req, res, next) => {
       userId,
     });
 
-    io.emit("likeOrUnlikeBlog", liked, userId, blogId);
+    io.emit("likeOrUnlikeBlog", !liked, userId, blogId);
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: !liked
