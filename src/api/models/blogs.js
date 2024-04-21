@@ -1,4 +1,3 @@
-const { timeStamp } = require("console");
 const mongoose = require("mongoose");
 
 const blogSchema = new mongoose.Schema(
@@ -29,6 +28,9 @@ const blogSchema = new mongoose.Schema(
           comment: {
             type: String,
           },
+          userType: {
+            type: String,
+          },
           commentedBy: {
             type: String,
             ref: "user",
@@ -41,13 +43,20 @@ const blogSchema = new mongoose.Schema(
         },
       },
     ],
-
+    isLiked: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
     likes: [
       {
         type: {
           likedBy: {
             type: String,
             ref: "user",
+          },
+          userType: {
+            type: String,
           },
           timeStamp: {
             type: Date,
@@ -77,6 +86,13 @@ blogSchema.virtual("advocates", {
   ref: "advocate",
   localField: "advocateId",
   foreignField: "advocateId",
+});
+
+blogSchema.virtual("commentedByDetails", {
+  ref: "user",
+  localField: "comments.commentedBy",
+  foreignField: "userId",
+  justOne: true,
 });
 
 const blog = new mongoose.model("blog", blogSchema);

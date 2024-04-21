@@ -3,6 +3,7 @@ const advocateValidation = {};
 
 //Models
 const Advocate = require("../models/advocate");
+const Blog = require("../models/blogs");
 
 //Helpers
 const hash = require("../helpers/hash");
@@ -71,6 +72,15 @@ advocateValidation.checkAdvocatePassword = async (advocate) => {
   );
 
   return isPasswordVerified;
+};
+
+advocateValidation.checkIfBlogIsLiked = async (blogId, advocateId) => {
+  const like = await Blog.findOne({
+    blogId: blogId,
+    "likes.likedBy": advocateId,
+  });
+
+  return like ? true : false;
 };
 
 module.exports = advocateValidation;

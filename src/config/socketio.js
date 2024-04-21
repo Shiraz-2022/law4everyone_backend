@@ -3,6 +3,7 @@ const socketIO = require("socket.io");
 
 //Services
 const userService = require("../api/services/user");
+const advocateService = require("../api/services/advocate");
 
 let io;
 
@@ -10,10 +11,18 @@ const initializeSocketServer = (server) => {
   io = socketIO(server);
 
   io.on("connection", async function (socket) {
-    const { userId, userType } = socket.handshake.query;
+    const { userId, userType, advocateId } = socket.handshake.query;
+
     if (userType == "user") {
       const updatedUser = await userService.storeSocketId(userId, socket.id);
-      console.log("A client connected.");
+      console.log("A user connected.");
+    }
+    if (userType == "advocate") {
+      const updatedAdvocate = await advocateService.storeSocketId(
+        advocateId,
+        socket.id
+      );
+      console.log("An advocate connected.");
     }
 
     // Handle disconnection

@@ -90,7 +90,6 @@ advocateService.deleteAccount = async (advocateId) => {
 };
 
 advocateService.getProfileDetails = async (advocateId) => {
-  console.log(advocateId);
   return await Advocate.findOne({ advocateId: advocateId });
 };
 
@@ -100,6 +99,16 @@ advocateService.getProblems = async (skip, limit) => {
   problems.sort((a, b) => a.timestamp - b.timestamp);
 
   return problems;
+};
+
+advocateService.storeSocketId = async (advocateId, socketId) => {
+  const updatedUser = await Advocate.findOneAndUpdate(
+    { advocateId: advocateId },
+    { socketId: socketId },
+    { new: true }
+  );
+
+  return updatedUser;
 };
 
 module.exports = advocateService;

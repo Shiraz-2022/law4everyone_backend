@@ -3,8 +3,12 @@ const User = require("../models/user.js");
 const Problem = require("../models/problem.js");
 const Blog = require("../models/blogs.js");
 const Advocate = require("../models/advocate.js");
+
 //Variables
 const userService = {};
+
+//Validation
+const userValidation = require("../validations/user.js");
 
 userService.createUser = async (userData) => {
   const newUser = new User(userData);
@@ -58,10 +62,19 @@ userService.deleteProblem = async (problemId) => {
 };
 
 userService.getBlogs = async (skip, limit) => {
-  const blogs = await Blog.find({}).skip(skip).limit(limit).populate({
-    path: "advocates",
-    select: "personalDetails.userName personalDetails.profileImage",
-  });
+  const blogs = await Blog.find({})
+    .skip(skip)
+    .limit(limit)
+    .populate([
+      {
+        path: "advocates",
+        select: "personalDetails.userName personalDetails.profileImage",
+      },
+      {
+        path: "commentedByDetails",
+        select: "name",
+      },
+    ]);
 
   blogs.sort((a, b) => a.timeStamp - b.timeStamp);
 
@@ -105,6 +118,18 @@ userService.storeNotification = async (userId, notification) => {
   );
 
   return updatedUser;
+};
+
+userService.updateBlogLikedStatus = async (blogIds, userId) => {
+  blogIds.map(async (blogId) => {
+    const isLiked = await userValidation.checkIfBlogIsLiked(blogId, userId);
+
+    await Blog.findOneAndUpdate(
+      { blogId: blogId },
+      { isLiked: isLiked },
+      { new: true }
+    );
+  });
 };
 
 // userService.getAdvocate = async (advocateId) => {

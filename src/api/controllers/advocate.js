@@ -16,6 +16,7 @@ const JWT = require("../helpers/jwt");
 
 //Validations
 const advocateValidation = require("../validations/advocate");
+const userValidation = require("../validations/user");
 
 //Services
 const advocateService = require("../services/advocate");
@@ -383,6 +384,112 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
     });
 
     // console.log("Received: ", advocateDetails.advocateId);
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.likeOrUnlikeBlog = async (req, res, next) => {
+  try {
+    const { blogId } = req.body;
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const advocateId = decodedToken.advocateId;
+
+    // const io = getIoInstance();
+
+    const existingAdvocate = await advocateService.getProfileDetails(
+      advocateId
+    );
+
+    if (!existingAdvocate) {
+      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+        message: "No advocate found",
+      });
+    }
+
+    const blog = await userValidation.checkExistingBlog(blogId);
+
+    if (!blog) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No blog found" });
+    }
+
+    const liked = await advocateValidation.checkIfBlogIsLiked(
+      blogId,
+      advocateId
+    );
+
+    const likes = {
+      likedBy: advocateId,
+      userType: "advocate",
+    };
+
+    const updateBlog = await advocateService.editBlog(blog.advocateId, blogId, {
+      title: blog.title,
+      description: blog.description,
+      likes,
+      liked,
+      advocateId,
+    });
+
+    // io.emit("likeOrUnlikeBlog", { isLiked, userId, blogId });
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: !liked
+        ? "The post has been liked succesfully"
+        : "The post has been disliked succesfully",
+      updateBlog: updateBlog.likes,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.commentOnBlog = async (req, res, next) => {
+  try {
+    const { blogId, comment } = req.body;
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const advocateId = decodedToken.advocateId;
+
+    const existingAdvocate = await advocateService.getProfileDetails(
+      advocateId
+    );
+
+    if (!existingAdvocate) {
+      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+        message: "No advocate found",
+      });
+    }
+
+    const blog = await userValidation.checkExistingBlog(blogId);
+
+    if (!blog) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No blog found" });
+    }
+
+    const comments = {
+      comment: comment,
+      commentedBy: advocateId,
+      userType: "advocate",
+    };
+
+    const updateBlog = await advocateService.editBlog(blog.advocateId, blogId, {
+      title: blog.title,
+      description: blog.description,
+      comments: comments,
+    });
+
+    // const io = getIoInstance();
+
+    // io.emit("commentOnBlog", { userId, blogId, comment });
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The comment has been posted succesfully",
+      updateBlog: updateBlog.comments,
+    });
   } catch (error) {
     next(error);
   }

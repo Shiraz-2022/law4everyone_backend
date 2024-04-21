@@ -241,6 +241,9 @@ userController.getBlogs = async (req, res, next) => {
     const skip = req.query.skip ? Number(req.query.skip) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 10;
 
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const userId = decodedToken.userId;
+
     const blogs = await userService.getBlogs(skip, limit);
 
     if (blogs.length == 0) {
@@ -248,6 +251,10 @@ userController.getBlogs = async (req, res, next) => {
         message: "No blogs left",
       });
     }
+
+    const blogIds = blogs.map((blog) => blog.blogId);
+
+    await userService.updateBlogLikedStatus(blogIds, userId);
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The blogs has been recieved",
@@ -306,6 +313,7 @@ userController.commentOnBlog = async (req, res, next) => {
     const comments = {
       comment: comment,
       commentedBy: userId,
+      userType: "advocate",
     };
 
     const updateBlog = await advocateService.editBlog(blog.advocateId, blogId, {
@@ -313,6 +321,10 @@ userController.commentOnBlog = async (req, res, next) => {
       description: blog.description,
       comments: comments,
     });
+
+    // const io = getIoInstance();
+
+    // io.emit("commentOnBlog", { userId, blogId, comment });
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The comment has been posted succesfully",
@@ -329,7 +341,7 @@ userController.likeOrUnlikeBlog = async (req, res, next) => {
     const decodedToken = await JWT.checkJwtStatus(req);
     const userId = decodedToken.userId;
 
-    const io = getIoInstance();
+    // const io = getIoInstance();
 
     const existingUser = await userService.getUserDetails(userId);
 
@@ -351,6 +363,7 @@ userController.likeOrUnlikeBlog = async (req, res, next) => {
 
     const likes = {
       likedBy: userId,
+      userType: "user",
     };
 
     const updateBlog = await advocateService.editBlog(blog.advocateId, blogId, {
@@ -361,7 +374,9 @@ userController.likeOrUnlikeBlog = async (req, res, next) => {
       userId,
     });
 
-    io.emit("likeOrUnlikeBlog", !liked, userId, blogId);
+    // const isLiked = !liked;
+
+    // io.emit("likeOrUnlikeBlog", { isLiked, userId, blogId });
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: !liked
