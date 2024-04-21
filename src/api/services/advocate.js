@@ -50,20 +50,35 @@ advocateService.createBlog = async (blogData) => {
 };
 
 advocateService.editBlog = async (advocateId, blogId, blogData) => {
-  const { title, description } = blogData;
-  const updatedBlog = Blog.findOneAndUpdate(
+  const { title, description, comments, likes, liked, userId } = blogData;
+
+  const updateFields = {
+    $set: {
+      title: title,
+      description: description,
+    },
+  };
+
+  if (comments) {
+    updateFields.$push = { comments: comments };
+  }
+
+  if (likes && liked === false) {
+    updateFields.$push = { likes: likes };
+  }
+
+  if (liked === true) {
+    updateFields.$pull = { likes: { likedBy: userId } };
+  }
+
+  const updatedBlog = await Blog.findOneAndUpdate(
     {
       advocateId: advocateId,
       blogId: blogId,
     },
-    {
-      title: title,
-      description: description,
-    },
+    updateFields,
     { new: true }
   );
-
-  // console.log(updatedProblem);
 
   return updatedBlog;
 };

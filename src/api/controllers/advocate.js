@@ -20,7 +20,6 @@ const advocateValidation = require("../validations/advocate");
 //Services
 const advocateService = require("../services/advocate");
 const userService = require("../services/user");
-const { timeStamp } = require("console");
 
 advocateController.signup = async (req, res, next) => {
   try {

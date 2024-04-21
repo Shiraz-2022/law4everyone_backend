@@ -14,7 +14,8 @@ router.post("/signin", userController.signin);
 router.post("/signout", userController.signout);
 router.post("/isUserVerified", userController.checkEmailIsVerified);
 router.post("/postProblem", userController.postProblem);
-
+router.post("/commentOnBlog", userController.commentOnBlog);
+router.post("/likeOrUnlikeBlog", userController.likeOrUnlikeBlog);
 //Put
 router.put("/editProblem/:problemId", userController.editProblem);
 

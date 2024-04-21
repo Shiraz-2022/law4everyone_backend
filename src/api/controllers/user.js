@@ -1,17 +1,28 @@
 //Libs
 const { v4: uuid } = require("uuid");
 
+//Config
+const { getIoInstance } = require("../../config/socketio");
+
 //helpers
 const sendMail = require("../helpers/nodemailer");
 const JWT = require("../helpers/jwt");
 const hash = require("../helpers/hash");
 const { HTTP_STATUS_CODES } = require("../helpers/statusCodes");
 
-//services,controllers,validations
-const userController = {};
-const userServices = require("../services/user");
+//Validations
 const userValidation = require("../validations/user");
+
+//Services
+const userService = require("../services/user");
+const advocateService = require("../services/advocate");
+
+//Models
 const user = require("../models/user");
+const { title } = require("process");
+
+//Variables
+const userController = {};
 
 //////////////// signup,signin ////////////////
 
@@ -27,7 +38,7 @@ userController.signup = async (req, res, next) => {
     }
     const verificationToken = Math.random().toString(36).substring(7);
     const hashedPassword = await hash.hashPassword(password);
-    const newUser = await userServices.createUser({
+    const newUser = await userService.createUser({
       userId: uuid(),
       socketId: uuid(),
       name,
@@ -64,7 +75,7 @@ userController.verifyUser = async (req, res, next) => {
         .status(HTTP_STATUS_CODES.FORBIDDEN)
         .json({ message: "Invalid verification token" });
     }
-    await userServices.updateVerficationStatus(res, token);
+    await userService.updateVerficationStatus(res, token);
     res
       .status(HTTP_STATUS_CODES.OK)
       .json({ message: "Email verification successful" });
@@ -149,7 +160,7 @@ userController.signout = async (req, res) => {
 userController.getProblems = async (req, res, next) => {
   try {
     const decodedToken = await JWT.checkJwtStatus(req);
-    const problems = await userServices.getProblems(decodedToken.userId);
+    const problems = await userService.getProblems(decodedToken.userId);
 
     res.status(HTTP_STATUS_CODES.OK).json({
       message: "Problems recieved succesfully",
@@ -172,7 +183,7 @@ userController.postProblem = async (req, res, next) => {
       status: status,
       deadline: deadline,
     };
-    const newProblem = await userServices.createProblem(problemData);
+    const newProblem = await userService.createProblem(problemData);
     res.status(HTTP_STATUS_CODES.OK).json({
       message: "The problem has been saved succesfully",
       problem: newProblem,
@@ -196,7 +207,7 @@ userController.editProblem = async (req, res, next) => {
       deadline: deadline,
     };
 
-    const updatedProblem = await userServices.editProblem(
+    const updatedProblem = await userService.editProblem(
       decodedToken.userId,
       problemId,
       problemData
@@ -213,7 +224,7 @@ userController.editProblem = async (req, res, next) => {
 userController.deleteProblem = async (req, res, next) => {
   try {
     const { problemId } = req.body;
-    await userServices.deleteProblem(problemId);
+    await userService.deleteProblem(problemId);
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The problem has been deleted succesfully",
@@ -230,7 +241,7 @@ userController.getBlogs = async (req, res, next) => {
     const skip = req.query.skip ? Number(req.query.skip) : 0;
     const limit = req.query.limit ? Number(req.query.limit) : 10;
 
-    const blogs = await userServices.getBlogs(skip, limit);
+    const blogs = await userService.getBlogs(skip, limit);
 
     if (blogs.length == 0) {
       return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
@@ -255,7 +266,7 @@ userController.searchAdvocate = async (req, res, next) => {
     const skip = req.body.skip ? Number(req.body.skip) : 0;
     const limit = req.body.limit ? Number(req.body.limit) : 10;
 
-    const advocate = await userServices.searchAdvocate(userName, skip, limit);
+    const advocate = await userService.searchAdvocate(userName, skip, limit);
     if (advocate.length == 0) {
       return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
         message: "No advocate found",
@@ -270,12 +281,101 @@ userController.searchAdvocate = async (req, res, next) => {
   }
 };
 
+userController.commentOnBlog = async (req, res, next) => {
+  try {
+    const { blogId, comment, userId } = req.body;
+
+    const existingUser = await userService.getUserDetails(userId);
+
+    if (!existingUser) {
+      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+        message: "No user found",
+      });
+    }
+
+    const blog = await userValidation.checkExistingBlog(blogId);
+
+    if (!blog) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No blog found" });
+    }
+
+    const comments = {
+      comment: comment,
+      commentedBy: userId,
+    };
+
+    const updateBlog = await advocateService.editBlog(blog.advocateId, blogId, {
+      title: blog.title,
+      description: blog.description,
+      comments: comments,
+    });
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The comment has been posted succesfully",
+      updateBlog: updateBlog.comments,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.likeOrUnlikeBlog = async (req, res, next) => {
+  try {
+    const { blogId, userId } = req.body;
+
+    const io = getIoInstance();
+
+    const existingUser = await userService.getUserDetails(userId);
+
+    if (!existingUser) {
+      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+        message: "No user found",
+      });
+    }
+
+    const blog = await userValidation.checkExistingBlog(blogId);
+
+    if (!blog) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No blog found" });
+    }
+
+    const liked = await userValidation.checkIfBlogIsLiked(blogId, userId);
+
+    const likes = {
+      likedBy: userId,
+    };
+
+    const updateBlog = await advocateService.editBlog(blog.advocateId, blogId, {
+      title: blog.title,
+      description: blog.description,
+      likes,
+      liked,
+      userId,
+    });
+
+    io.emit("likeOrUnlikeBlog", liked, userId, blogId);
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: !liked
+        ? "The post has been liked succesfully"
+        : "The post has been disliked succesfully",
+      updateBlog: updateBlog.likes,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // userController.searchByLocation = async (req, res, next) => {
 //   try {
 //     const { maxDistance, latitude, longitude } = req.body;
 //     const limit = req.body.limit ? req.body.limit : 5;
 
-//     const advocates = userServices.searchByLocation(
+//     const advocates = userService.searchByLocation(
 //       maxDistance,
 //       latitude,
 //       longitude
