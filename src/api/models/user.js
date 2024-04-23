@@ -46,6 +46,10 @@ const userSchema = new mongoose.Schema({
       read: Boolean,
     },
   ],
+  profileImage: {
+    type: mongoose.Schema.Types.Mixed,
+    required: true,
+  },
 });
 
 const user = mongoose.model("user", userSchema);

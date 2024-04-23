@@ -1,5 +1,6 @@
 //Libs
 const { v4: uuid } = require("uuid");
+const fs = require("fs");
 
 //Config
 const { getIoInstance } = require("../../config/socketio");
@@ -17,10 +18,6 @@ const userValidation = require("../validations/user");
 const userService = require("../services/user");
 const advocateService = require("../services/advocate");
 
-//Models
-const user = require("../models/user");
-const { title } = require("process");
-
 //Variables
 const userController = {};
 
@@ -28,6 +25,10 @@ const userController = {};
 
 userController.signup = async (req, res, next) => {
   try {
+    const profileImagePath = req.file.path;
+    console.log(profileImagePath);
+    const profileImage = fs.readFileSync(profileImagePath);
+
     const { name, email, password, phone } = req.body;
     const existingUser = await userValidation.checkExistingUser(email);
     if (existingUser) {
@@ -46,6 +47,7 @@ userController.signup = async (req, res, next) => {
       password: hashedPassword,
       phone: phone,
       verificationToken,
+      profileImage: profileImage,
       // location: location,
     });
 
@@ -57,7 +59,7 @@ userController.signup = async (req, res, next) => {
       message: "User signed up, please verify your email",
       isSignedUp: true,
       // authToken: authToken,
-      user: { id: newUser.id, name: newUser.name, email: newUser.email },
+      user: { id: newUser.userId, name: newUser.name, email: newUser.email },
     });
   } catch (error) {
     next(error);
@@ -402,4 +404,31 @@ userController.searchAdvocate = async (req, res, next) => {
 //   }
 // };
 
+userController.getUserProfile = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const userId = decodedToken.userId;
+
+    const existingUser = await userService.getUserDetails(userId);
+
+    if (!existingUser) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No User found" });
+    }
+    const { name, email, phone, profileImage } = existingUser;
+    const user = {
+      name: name,
+      email: email,
+      phone: phone,
+      profileImage: profileImage,
+    };
+
+    return res
+      .status(HTTP_STATUS_CODES.OK)
+      .json({ message: "User Details Found", user: user });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = userController;
