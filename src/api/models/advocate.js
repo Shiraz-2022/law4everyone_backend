@@ -23,7 +23,23 @@ const advocateSchema = new mongoose.Schema({
       required: true,
     },
     address: {
-      type: String,
+      type: {
+        houseNo: {
+          type: String,
+        },
+        district: {
+          type: String,
+        },
+        city: {
+          type: String,
+        },
+        zipCode: {
+          type: Number,
+        },
+        state: {
+          type: String,
+        },
+      },
       required: true,
     },
     bio: {
@@ -55,14 +71,11 @@ const advocateSchema = new mongoose.Schema({
 
   location: {
     type: {
-      geometry: {
-        coordinates: {
-          latitude: Number,
-          longitude: Number,
+      coordinates: {
+        type: {
+          latitude: { type: String },
+          longitude: { type: String },
         },
-      },
-      properties: {
-        name: String,
       },
     },
   },

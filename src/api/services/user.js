@@ -120,16 +120,37 @@ userService.storeNotification = async (userId, notification) => {
   return updatedUser;
 };
 
-userService.updateBlogLikedStatus = async (blogIds, userId) => {
-  blogIds.map(async (blogId) => {
-    const isLiked = await userValidation.checkIfBlogIsLiked(blogId, userId);
+userService.updateBlogLikedStatus = async (blogs, userId) => {
+  const updatedBlogs = [];
 
-    await Blog.findOneAndUpdate(
-      { blogId: blogId },
-      { isLiked: isLiked },
-      { new: true }
-    );
-  });
+  await Promise.all(
+    blogs.map(async (blog) => {
+      const isLiked = await userValidation.checkIfBlogIsLiked(
+        blog.blogId,
+        userId
+      );
+      // console.log(isLiked);
+
+      const updatedBlog = await Blog.findOneAndUpdate(
+        { blogId: blog.blogId },
+        { isLiked: isLiked },
+        { new: true }
+      ).populate([
+        {
+          path: "advocates",
+          select: "personalDetails.userName personalDetails.profileImage",
+        },
+        {
+          path: "commentedByDetails",
+          select: "name",
+        },
+      ]);
+
+      updatedBlogs.push(updatedBlog);
+    })
+  );
+
+  return updatedBlogs;
 };
 
 // userService.getAdvocate = async (advocateId) => {

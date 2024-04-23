@@ -252,36 +252,11 @@ userController.getBlogs = async (req, res, next) => {
       });
     }
 
-    const blogIds = blogs.map((blog) => blog.blogId);
-
-    await userService.updateBlogLikedStatus(blogIds, userId);
+    const updatedBlogs = await userService.updateBlogLikedStatus(blogs, userId);
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The blogs has been recieved",
-      blogs: blogs,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-//////////////// advocates ////////////////
-
-userController.searchAdvocate = async (req, res, next) => {
-  try {
-    const { userName } = req.body;
-    const skip = req.body.skip ? Number(req.body.skip) : 0;
-    const limit = req.body.limit ? Number(req.body.limit) : 10;
-
-    const advocate = await userService.searchAdvocate(userName, skip, limit);
-    if (advocate.length == 0) {
-      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
-        message: "No advocate found",
-      });
-    }
-    return res.status(HTTP_STATUS_CODES.OK).json({
-      message: "The advocates found are:",
-      advocate: advocate,
+      blogs: updatedBlogs,
     });
   } catch (error) {
     next(error);
@@ -383,6 +358,29 @@ userController.likeOrUnlikeBlog = async (req, res, next) => {
         ? "The post has been liked succesfully"
         : "The post has been disliked succesfully",
       updateBlog: updateBlog.likes,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//////////////// advocates ////////////////
+
+userController.searchAdvocate = async (req, res, next) => {
+  try {
+    const { userName } = req.body;
+    const skip = req.body.skip ? Number(req.body.skip) : 0;
+    const limit = req.body.limit ? Number(req.body.limit) : 10;
+
+    const advocate = await userService.searchAdvocate(userName, skip, limit);
+    if (advocate.length == 0) {
+      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+        message: "No advocate found",
+      });
+    }
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The advocates found are:",
+      advocate: advocate,
     });
   } catch (error) {
     next(error);
