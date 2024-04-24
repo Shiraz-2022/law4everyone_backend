@@ -10,8 +10,10 @@ const hash = require("../helpers/hash");
 
 advocateValidation.checkExistingAdvocate = async (email, enrollmentNumber) => {
   const existingAdvocate = await Advocate.findOne({
-    "contactDetails.email": email,
-    "workDetails.enrollmentNumber": enrollmentNumber,
+    $or: [
+      { "contactDetails.email": email },
+      { "workDetails.enrollmentNumber": enrollmentNumber },
+    ],
   });
   return existingAdvocate;
 };
@@ -21,7 +23,23 @@ advocateValidation.checkUserNameAvaiability = async (userName) => {
     "personalDetails.userName": userName,
   });
 
-  return existingUserName;
+  if (existingUserName != null) {
+    return true;
+  }
+
+  return false;
+};
+
+advocateValidation.checkExistingPhoneNumber = async (phone) => {
+  const existingPhoneNumber = await Advocate.findOne({
+    "contactDetails.phone": phone,
+  });
+
+  if (existingPhoneNumber != null) {
+    return true;
+  }
+
+  return false;
 };
 
 advocateValidation.checkEmailIsVerified = async (email, enrollmentNumber) => {

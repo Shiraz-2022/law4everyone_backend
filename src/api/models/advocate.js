@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+// const db = require("../../config/db");
 
 const advocateSchema = new mongoose.Schema({
   advocateId: {
@@ -24,9 +25,9 @@ const advocateSchema = new mongoose.Schema({
     },
     address: {
       type: {
-        houseNo: {
-          type: String,
-        },
+        // houseNo: {
+        //   type: String,
+        // },
         district: {
           type: String,
         },
@@ -71,12 +72,13 @@ const advocateSchema = new mongoose.Schema({
 
   location: {
     type: {
-      coordinates: {
-        type: {
-          latitude: { type: String },
-          longitude: { type: String },
-        },
-      },
+      type: String,
+      enum: ["Point"],
+      default: "Point",
+    },
+    coordinates: {
+      type: [Number],
+      index: "2dsphere", // Create a 2dsphere index on the coordinates field
     },
   },
 
@@ -138,5 +140,7 @@ const advocateSchema = new mongoose.Schema({
 // advocateSchema.index({ "personalDetails.userName": "text" });
 
 const advocate = mongoose.model("advocate", advocateSchema);
+
+// db.collection("advocates").createIndex({ "location.coordinates": "2dsphere" });
 
 module.exports = advocate;

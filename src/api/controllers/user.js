@@ -10,6 +10,7 @@ const sendMail = require("../helpers/nodemailer");
 const JWT = require("../helpers/jwt");
 const hash = require("../helpers/hash");
 const { HTTP_STATUS_CODES } = require("../helpers/statusCodes");
+const geoCode = require("../helpers/geoCode");
 
 //Validations
 const userValidation = require("../validations/user");
@@ -26,10 +27,11 @@ const userController = {};
 userController.signup = async (req, res, next) => {
   try {
     const profileImagePath = req.file.path;
-    console.log(profileImagePath);
+
     const profileImage = fs.readFileSync(profileImagePath);
 
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, district, city, zipCode, state } =
+      req.body;
     const existingUser = await userValidation.checkExistingUser(email);
     if (existingUser) {
       return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
@@ -39,6 +41,16 @@ userController.signup = async (req, res, next) => {
     }
     const verificationToken = Math.random().toString(36).substring(7);
     const hashedPassword = await hash.hashPassword(password);
+
+    const combinedAdress =
+      city + "," + district + "," + zipCode + "," + state + ",India";
+
+    const location = await geoCode(combinedAdress);
+    const coordinates = [];
+    coordinates.push(location.lat);
+    coordinates.push(location.lng);
+    // console.log(location);
+
     const newUser = await userService.createUser({
       userId: uuid(),
       socketId: uuid(),
@@ -48,8 +60,18 @@ userController.signup = async (req, res, next) => {
       phone: phone,
       verificationToken,
       profileImage: profileImage,
-      // location: location,
+      address: {
+        district: district,
+        city: city,
+        zipCode: zipCode,
+        state: state,
+      },
+      location: {
+        coordinates: coordinates,
+      },
     });
+
+    fs.unlinkSync(profileImagePath);
 
     const verificationLink = `http://localhost:3000/user/verify?token=${verificationToken}`;
 
@@ -58,7 +80,6 @@ userController.signup = async (req, res, next) => {
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "User signed up, please verify your email",
       isSignedUp: true,
-      // authToken: authToken,
       user: { id: newUser.userId, name: newUser.name, email: newUser.email },
     });
   } catch (error) {
@@ -389,20 +410,38 @@ userController.searchAdvocate = async (req, res, next) => {
   }
 };
 
-// userController.searchByLocation = async (req, res, next) => {
-//   try {
-//     const { maxDistance, latitude, longitude } = req.body;
-//     const limit = req.body.limit ? req.body.limit : 5;
+userController.searchByLocation = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const userId = decodedToken.userId;
 
-//     const advocates = userService.searchByLocation(
-//       maxDistance,
-//       latitude,
-//       longitude
-//     );
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+    const existingUser = await userService.getUserDetails(userId);
+
+    if (!existingUser) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No User found" });
+    }
+
+    const location = existingUser.location.coordinates;
+
+    const limit = req.body.limit ? req.body.limit : 5;
+    const skip = req.body.skip ? skip : 0;
+
+    const nearbyAdvocates = await userService.searchByLocation(
+      location,
+      limit,
+      skip
+    );
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "Nearby advocates are: ",
+      nearbyAdvocates: nearbyAdvocates,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 userController.getUserProfile = async (req, res, next) => {
   try {

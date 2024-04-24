@@ -25,6 +25,7 @@ router.get("/getBlogs", userController.getBlogs);
 router.get("/searchAdvocate", userController.searchAdvocate);
 router.get("/getProblems", userController.getProblems);
 router.get("/getUserProfile", userController.getUserProfile);
+router.get("/searchByLocation", userController.searchByLocation);
 
 //Post
 router.post("/signup", upload.single("profileImage"), userController.signup);

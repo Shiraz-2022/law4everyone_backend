@@ -153,12 +153,23 @@ userService.updateBlogLikedStatus = async (blogs, userId) => {
   return updatedBlogs;
 };
 
-// userService.getAdvocate = async (advocateId) => {
-//   const advocate = await Advocate.find({
-//     id: { advocateId },
-//   });
+userService.searchByLocation = async (location, limit, skip) => {
+  const nearbyAdvocates = await Advocate.find({
+    "verificationDetails.isEmailVerified": true,
+    "verificationDetails.isAdvocateVerified": true,
+    "location.coordinates": {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [location[0], location[1]],
+        },
+        $maxDistance: 10000, // Specify the maximum distance in meters (e.g., 10 kilometers)
+      },
+    },
+  })
+    .skip(skip)
+    .limit(limit);
 
-//   return advocate;
-// };
-
+  return nearbyAdvocates;
+};
 module.exports = userService;

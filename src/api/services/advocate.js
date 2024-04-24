@@ -3,6 +3,9 @@ const Advocate = require("../models/advocate");
 const Blog = require("../models/blogs");
 const Problem = require("../models/problem");
 
+//Helpers
+const geoCode = require("../helpers/geoCode");
+
 //Variables
 const advocateService = {};
 
@@ -109,6 +112,12 @@ advocateService.storeSocketId = async (advocateId, socketId) => {
   );
 
   return updatedUser;
+};
+
+advocateService.geoCodeAddress = async (address) => {
+  const geoCodedAddress = await geoCode(address);
+
+  return geoCodedAddress;
 };
 
 module.exports = advocateService;

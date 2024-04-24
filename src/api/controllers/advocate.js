@@ -13,6 +13,7 @@ const { HTTP_STATUS_CODES } = require("../helpers/statusCodes");
 const hash = require("../helpers/hash");
 const sendMail = require("../helpers/nodemailer");
 const JWT = require("../helpers/jwt");
+const geoCode = require("../helpers/geoCode");
 
 //Validations
 const advocateValidation = require("../validations/advocate");
@@ -31,7 +32,11 @@ advocateController.signup = async (req, res, next) => {
       password,
       phone,
       dateOfBirth,
-      address,
+      // address,
+      district,
+      city,
+      zipCode,
+      state,
       enrollmentNumber,
       durationOfPractice,
       areasOfExpertise,
@@ -62,7 +67,8 @@ advocateController.signup = async (req, res, next) => {
     );
 
     if (existingUserName) {
-      fs.unlinkSync(req.file.path);
+      fs.unlinkSync(certificatePath);
+      fs.unlinkSync(profilePath);
       return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
         message: "Username already exists",
         isSignedUp: false,
@@ -70,15 +76,44 @@ advocateController.signup = async (req, res, next) => {
       });
     }
 
+    const existingPhoneNumber =
+      await advocateValidation.checkExistingPhoneNumber(phone);
+
+    if (existingPhoneNumber) {
+      fs.unlinkSync(certificatePath);
+      fs.unlinkSync(profilePath);
+      return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
+        message: "Phone number already exists",
+        isSignedUp: false,
+        phoneNumberAvailable: false,
+      });
+    }
+
     const verificationToken = Math.random().toString(36).substring(7);
     const hashedPassword = await hash.hashPassword(password);
+
+    const combinedAdress =
+      city + "," + district + "," + zipCode + "," + state + ",India";
+
+    const location = await geoCode(combinedAdress);
+    const coordinates = [];
+    coordinates.push(location.lat);
+    coordinates.push(location.lng);
+
+    // const { houseNo, district, city, zipCode, state } = address;
+
     const newAdvocate = await advocateService.createAdvocate({
       advocateId: uuid(),
       personalDetails: {
         userName: userName,
         name: name,
         dateOfBirth: dateOfBirth,
-        address: address,
+        address: {
+          district: district,
+          city: city,
+          zipCode: zipCode,
+          state: state,
+        },
         bio: bio,
         profileImage: profileImage,
       },
@@ -100,12 +135,15 @@ advocateController.signup = async (req, res, next) => {
         yearOfGraduation: yearOfGraduation,
       },
       password: hashedPassword,
+      location: {
+        coordinates: coordinates,
+      },
 
       // location: location,
     });
 
-    fs.unlinkSync(req.files[0].path);
-    fs.unlinkSync(req.files[1].path);
+    fs.unlinkSync(certificatePath);
+    fs.unlinkSync(profilePath);
 
     const verificationLink = `http://localhost:3000/advocate/verify?token=${verificationToken}`;
 
@@ -213,7 +251,7 @@ advocateController.signin = async (req, res, next) => {
 
 advocateController.postBlog = async (req, res, next) => {
   try {
-    const { title, description, tags } = req.body;
+    const { title, description, tags, jurisdiction } = req.body;
     const decodedToken = await JWT.checkJwtStatus(req);
     const imagePath = req.file.path;
     const image = fs.readFileSync(imagePath);
