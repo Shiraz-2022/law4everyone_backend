@@ -22,9 +22,14 @@ const upload = multer({ storage: storage });
 //Get
 router.get("/verify", userController.verifyUser);
 router.get("/getBlogs", userController.getBlogs);
-router.get("/searchAdvocate", userController.searchAdvocate);
+router.get(
+  "/searchAdvocateByUserName",
+  userController.searchAdvocateByUserName
+);
+router.get("/searchAdvocateByName", userController.searchAdvocateByName);
 router.get("/getProblems", userController.getProblems);
 router.get("/getUserProfile", userController.getUserProfile);
+router.get("/nearByAdvocates", userController.nearbyAdvocates);
 router.get("/searchByLocation", userController.searchByLocation);
 
 //Post

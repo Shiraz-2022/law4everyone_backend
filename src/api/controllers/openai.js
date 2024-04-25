@@ -97,7 +97,7 @@ openaiController.translateAudio = async (req, res, next) => {
 
 openaiController.createChat = async (req, res, next) => {
   try {
-    const chatId = req.body;
+    const { chatId } = req.body;
     // const chatId = 1;
     const decodedToken = await JWT.checkJwtStatus(req);
     const chatData = { userId: decodedToken.userId, chatId: chatId };

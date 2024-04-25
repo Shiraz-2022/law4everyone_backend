@@ -10,6 +10,9 @@ const userService = {};
 //Validation
 const userValidation = require("../validations/user.js");
 
+//Helpers
+const geoCode = require("../helpers/geoCode.js");
+
 userService.createUser = async (userData) => {
   const newUser = new User(userData);
   await newUser.save();
@@ -83,11 +86,28 @@ userService.getBlogs = async (skip, limit) => {
 
 //advocates
 
-userService.searchAdvocate = async (userName, skip, limit) => {
+userService.searchAdvocateByUserName = async (userName, skip, limit) => {
   const regexPattern = new RegExp(`^${userName}`, "i");
   const advocate = await Advocate.find({
     "personalDetails.userName": { $regex: regexPattern },
   })
+    .select(
+      "personalDetails.name personalDetails.userName personalDetails.profileImage"
+    )
+    .skip(skip)
+    .limit(limit);
+
+  return advocate;
+};
+
+userService.searchAdvocateByName = async (name, skip, limit) => {
+  const regexPattern = new RegExp(`^${name}`, "i");
+  const advocate = await Advocate.find({
+    "personalDetails.name": { $regex: regexPattern },
+  })
+    .select(
+      "personalDetails.name personalDetails.userName personalDetails.profileImage"
+    )
     .skip(skip)
     .limit(limit);
 
@@ -153,7 +173,7 @@ userService.updateBlogLikedStatus = async (blogs, userId) => {
   return updatedBlogs;
 };
 
-userService.searchByLocation = async (location, limit, skip) => {
+userService.nearbyAdvocates = async (location, limit, skip) => {
   const nearbyAdvocates = await Advocate.find({
     "verificationDetails.isEmailVerified": true,
     "verificationDetails.isAdvocateVerified": true,
@@ -167,6 +187,33 @@ userService.searchByLocation = async (location, limit, skip) => {
       },
     },
   })
+    .select(
+      "personalDetails.name personalDetails.userName personalDetails.profileImage"
+    )
+    .skip(skip)
+    .limit(limit);
+
+  return nearbyAdvocates;
+};
+
+userService.searchByLocation = async (city, limit, skip) => {
+  const location = await geoCode(city);
+  const nearbyAdvocates = await Advocate.find({
+    "verificationDetails.isEmailVerified": true,
+    "verificationDetails.isAdvocateVerified": true,
+    "location.coordinates": {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [location.lat, location.lng],
+        },
+        $maxDistance: 10000, // Specify the maximum distance in meters (e.g., 10 kilometers)
+      },
+    },
+  })
+    .select(
+      "personalDetails.name personalDetails.userName personalDetails.profileImage"
+    )
     .skip(skip)
     .limit(limit);
 

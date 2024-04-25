@@ -18,6 +18,7 @@ const userValidation = require("../validations/user");
 //Services
 const userService = require("../services/user");
 const advocateService = require("../services/advocate");
+const advocate = require("../models/advocate");
 
 //Variables
 const userController = {};
@@ -389,13 +390,38 @@ userController.likeOrUnlikeBlog = async (req, res, next) => {
 
 //////////////// advocates ////////////////
 
-userController.searchAdvocate = async (req, res, next) => {
+userController.searchAdvocateByUserName = async (req, res, next) => {
   try {
     const { userName } = req.body;
     const skip = req.body.skip ? Number(req.body.skip) : 0;
     const limit = req.body.limit ? Number(req.body.limit) : 10;
 
-    const advocate = await userService.searchAdvocate(userName, skip, limit);
+    const advocate = await userService.searchAdvocateByUserName(
+      userName,
+      skip,
+      limit
+    );
+    if (advocate.length == 0) {
+      return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
+        message: "No advocate found",
+      });
+    }
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The advocates found are:",
+      advocate: advocate,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.searchAdvocateByName = async (req, res, next) => {
+  try {
+    const { name } = req.body;
+    const skip = req.body.skip ? Number(req.body.skip) : 0;
+    const limit = req.body.limit ? Number(req.body.limit) : 10;
+
+    const advocate = await userService.searchAdvocateByName(name, skip, limit);
     if (advocate.length == 0) {
       return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
         message: "No advocate found",
@@ -411,6 +437,28 @@ userController.searchAdvocate = async (req, res, next) => {
 };
 
 userController.searchByLocation = async (req, res, next) => {
+  try {
+    const { city } = req.body;
+
+    const limit = req.body.limit ? req.body.limit : 5;
+    const skip = req.body.skip ? skip : 0;
+
+    const nearbyAdvocates = await userService.searchByLocation(
+      city,
+      limit,
+      skip
+    );
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "Nearby advocates are: ",
+      nearbyAdvocates: nearbyAdvocates,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.nearbyAdvocates = async (req, res, next) => {
   try {
     const decodedToken = await JWT.checkJwtStatus(req);
     const userId = decodedToken.userId;
@@ -428,7 +476,7 @@ userController.searchByLocation = async (req, res, next) => {
     const limit = req.body.limit ? req.body.limit : 5;
     const skip = req.body.skip ? skip : 0;
 
-    const nearbyAdvocates = await userService.searchByLocation(
+    const nearbyAdvocates = await userService.nearbyAdvocates(
       location,
       limit,
       skip
