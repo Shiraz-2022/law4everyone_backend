@@ -24,6 +24,7 @@ router.get("/verify", userController.verifyUser);
 router.get("/getBlogs", userController.getBlogs);
 router.get("/getProblems", userController.getProblems);
 router.get("/getUserProfile", userController.getUserProfile);
+router.get("/nearByAdvocates", userController.nearbyAdvocates);
 
 //Post
 router.post("/signup", upload.single("profileImage"), userController.signup);
@@ -33,7 +34,6 @@ router.post("/isUserVerified", userController.checkEmailIsVerified);
 router.post("/postProblem", userController.postProblem);
 router.post("/commentOnBlog", userController.commentOnBlog);
 router.post("/likeOrUnlikeBlog", userController.likeOrUnlikeBlog);
-router.post("/nearByAdvocates", userController.nearbyAdvocates);
 router.post("/searchByLocation", userController.searchByLocation);
 router.post(
   "/filterByAreasOfExpertise",
