@@ -22,19 +22,8 @@ const upload = multer({ storage: storage });
 //Get
 router.get("/verify", userController.verifyUser);
 router.get("/getBlogs", userController.getBlogs);
-router.get(
-  "/searchAdvocateByUserName",
-  userController.searchAdvocateByUserName
-);
-router.get("/searchAdvocateByName", userController.searchAdvocateByName);
 router.get("/getProblems", userController.getProblems);
 router.get("/getUserProfile", userController.getUserProfile);
-router.get("/nearByAdvocates", userController.nearbyAdvocates);
-router.get("/searchByLocation", userController.searchByLocation);
-router.get(
-  "/filterByAreasOfExpertise",
-  userController.filterByAreasOfExpertise
-);
 
 //Post
 router.post("/signup", upload.single("profileImage"), userController.signup);
@@ -44,6 +33,18 @@ router.post("/isUserVerified", userController.checkEmailIsVerified);
 router.post("/postProblem", userController.postProblem);
 router.post("/commentOnBlog", userController.commentOnBlog);
 router.post("/likeOrUnlikeBlog", userController.likeOrUnlikeBlog);
+router.post("/nearByAdvocates", userController.nearbyAdvocates);
+router.post("/searchByLocation", userController.searchByLocation);
+router.post(
+  "/filterByAreasOfExpertise",
+  userController.filterByAreasOfExpertise
+);
+router.post(
+  "/searchAdvocateByUserName",
+  userController.searchAdvocateByUserName
+);
+router.post("/searchAdvocateByName", userController.searchAdvocateByName);
+
 //Put
 router.put("/editProblem/:problemId", userController.editProblem);
 
