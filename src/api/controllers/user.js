@@ -518,4 +518,28 @@ userController.getUserProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+userController.filterByAreasOfExpertise = async (req, res, next) => {
+  try {
+    const { areasOfExpertise, advocates } = req.body;
+
+    const filteredAdvocates = await userService.filterByAreasOfExpertise(
+      areasOfExpertise,
+      advocates
+    );
+
+    if (filteredAdvocates.length == 0) {
+      return res.status(HTTP_STATUS_CODES.OK).json({
+        message: "No advocates are found",
+      });
+    }
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "Filtered advocates are: ",
+      filteredAdvocates: filteredAdvocates,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = userController;

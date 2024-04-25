@@ -188,7 +188,7 @@ userService.nearbyAdvocates = async (location, limit, skip) => {
     },
   })
     .select(
-      "personalDetails.name personalDetails.userName personalDetails.profileImage"
+      "advocateId personalDetails.name personalDetails.userName personalDetails.profileImage"
     )
     .skip(skip)
     .limit(limit);
@@ -212,11 +212,41 @@ userService.searchByLocation = async (city, limit, skip) => {
     },
   })
     .select(
-      "personalDetails.name personalDetails.userName personalDetails.profileImage"
+      "advocateId personalDetails.name personalDetails.userName personalDetails.profileImage"
     )
     .skip(skip)
     .limit(limit);
 
   return nearbyAdvocates;
 };
+
+userService.filterByAreasOfExpertise = async (areasOfExpertise, advocates) => {
+  const filteredAdvocates = [];
+  for (const advocate of advocates) {
+    const existingAdvocate = await Advocate.findOne({
+      advocateId: advocate.advocateId,
+    });
+
+    const isMatched = areasOfExpertise.some((area) =>
+      existingAdvocate.workDetails.areasOfExpertise.includes(area)
+    );
+
+    if (isMatched) {
+      filteredAdvocates.push(advocate);
+    }
+  }
+
+  filteredAdvocates.sort((a, b) => {
+    const matchedAreasA = a.workDetails.areasOfExpertise.filter((area) =>
+      areasOfExpertise.includes(area)
+    ).length;
+    const matchedAreasB = b.workDetails.areasOfExpertise.filter((area) =>
+      areasOfExpertise.includes(area)
+    ).length;
+    return matchedAreasB - matchedAreasA;
+  });
+
+  return filteredAdvocates;
+};
+
 module.exports = userService;

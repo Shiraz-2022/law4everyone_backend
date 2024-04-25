@@ -31,6 +31,10 @@ router.get("/getProblems", userController.getProblems);
 router.get("/getUserProfile", userController.getUserProfile);
 router.get("/nearByAdvocates", userController.nearbyAdvocates);
 router.get("/searchByLocation", userController.searchByLocation);
+router.get(
+  "/filterByAreasOfExpertise",
+  userController.filterByAreasOfExpertise
+);
 
 //Post
 router.post("/signup", upload.single("profileImage"), userController.signup);
