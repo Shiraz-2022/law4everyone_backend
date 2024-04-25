@@ -196,8 +196,8 @@ userService.nearbyAdvocates = async (location, limit, skip) => {
   return nearbyAdvocates;
 };
 
-userService.searchByLocation = async (city, limit, skip) => {
-  const location = await geoCode(city);
+userService.searchByLocation = async (address, limit, skip) => {
+  const location = await geoCode(address);
   const nearbyAdvocates = await Advocate.find({
     "verificationDetails.isEmailVerified": true,
     "verificationDetails.isAdvocateVerified": true,

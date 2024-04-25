@@ -438,13 +438,15 @@ userController.searchAdvocateByName = async (req, res, next) => {
 
 userController.searchByLocation = async (req, res, next) => {
   try {
-    const { city } = req.body;
+    const { city, state } = req.body;
 
     const limit = req.body.limit ? req.body.limit : 5;
     const skip = req.body.skip ? skip : 0;
 
+    const address = city + "," + state;
+
     const nearbyAdvocates = await userService.searchByLocation(
-      city,
+      address,
       limit,
       skip
     );
