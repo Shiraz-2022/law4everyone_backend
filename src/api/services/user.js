@@ -230,7 +230,9 @@ userService.filterByAreasOfExpertise = async (areasOfExpertise, advocates) => {
     );
 
     const isMatched = areasOfExpertise.some((area) =>
-      existingAdvocate.workDetails.areasOfExpertise.includes(area)
+      existingAdvocate.workDetails.areasOfExpertise.some(
+        (existingArea) => existingArea.toLowerCase() === area.toLowerCase()
+      )
     );
 
     if (isMatched) {
