@@ -248,6 +248,7 @@ advocateController.signin = async (req, res, next) => {
 advocateController.postBlog = async (req, res, next) => {
   try {
     const { title, description, tags } = req.body;
+    console.log(tags);
     const decodedToken = await JWT.checkJwtStatus(req);
     const imagePath = req.file.path;
     const image = fs.readFileSync(imagePath);
