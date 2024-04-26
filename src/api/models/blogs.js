@@ -67,9 +67,11 @@ const blogSchema = new mongoose.Schema(
       },
     ],
 
-    tags: {
-      type: [String],
-    },
+    tags: [
+      {
+        type: String,
+      },
+    ],
     timeStamp: {
       type: Date,
       required: true,
