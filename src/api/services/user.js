@@ -92,7 +92,7 @@ userService.searchAdvocateByUserName = async (userName, skip, limit) => {
     "personalDetails.userName": { $regex: regexPattern },
   })
     .select(
-      "personalDetails.name personalDetails.userName personalDetails.profileImage"
+      "personalDetails.name personalDetails.userName personalDetails.profileImage advocateId"
     )
     .skip(skip)
     .limit(limit);
