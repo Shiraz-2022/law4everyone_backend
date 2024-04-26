@@ -393,13 +393,7 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
     const advocateInfo = {
       userName,
       name,
-      address,
       email,
-      phone,
-      nameOfUniversity,
-      yearOfGraduation,
-      durationOfPractice,
-      areasOfExpertise,
     };
 
     const notification = {

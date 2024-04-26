@@ -544,4 +544,18 @@ userController.filterByAreasOfExpertise = async (req, res, next) => {
     next(error);
   }
 };
+
+userController.advocateRequestResponse = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const userId = decodedToken.userId;
+
+    const { requestResponse, advocateId } = req.body;
+
+    const io = getIoInstance();
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = userController;

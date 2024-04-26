@@ -225,14 +225,16 @@ userService.filterByAreasOfExpertise = async (areasOfExpertise, advocates) => {
   for (const advocate of advocates) {
     const existingAdvocate = await Advocate.findOne({
       advocateId: advocate.advocateId,
-    });
+    }).select(
+      "advocateId personalDetails.name personalDetails.userName personalDetails.profileImage workDetails.areasOfExpertise"
+    );
 
     const isMatched = areasOfExpertise.some((area) =>
       existingAdvocate.workDetails.areasOfExpertise.includes(area)
     );
 
     if (isMatched) {
-      filteredAdvocates.push(advocate);
+      filteredAdvocates.push(existingAdvocate);
     }
   }
 
