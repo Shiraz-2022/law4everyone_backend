@@ -187,11 +187,9 @@ advocateController.verifyUser = async (req, res, next) => {
 advocateController.signin = async (req, res, next) => {
   try {
     const advocate = req.body.advocate;
-    const { email, enrollmentNumber } = advocate;
-    const existingAdvocate = await advocateValidation.checkExistingAdvocate(
-      email,
-      enrollmentNumber
-    );
+    const { email } = advocate;
+    const existingAdvocate =
+      await advocateValidation.checkExistingAdvocateByEmail(email);
 
     if (!existingAdvocate) {
       return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
@@ -201,8 +199,7 @@ advocateController.signin = async (req, res, next) => {
     }
 
     const isAdvocateVerified = await advocateValidation.checkAdvocateIsVerified(
-      email,
-      enrollmentNumber
+      email
     );
 
     if (!isAdvocateVerified) {
@@ -223,8 +220,7 @@ advocateController.signin = async (req, res, next) => {
       });
     }
     const isEmailVerified = await advocateValidation.checkEmailIsVerified(
-      email,
-      enrollmentNumber
+      email
     );
 
     if (!isEmailVerified) {
@@ -251,7 +247,7 @@ advocateController.signin = async (req, res, next) => {
 
 advocateController.postBlog = async (req, res, next) => {
   try {
-    const { title, description, tags, jurisdiction } = req.body;
+    const { title, description, tags } = req.body;
     const decodedToken = await JWT.checkJwtStatus(req);
     const imagePath = req.file.path;
     const image = fs.readFileSync(imagePath);

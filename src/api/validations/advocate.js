@@ -18,6 +18,13 @@ advocateValidation.checkExistingAdvocate = async (email, enrollmentNumber) => {
   return existingAdvocate;
 };
 
+advocateValidation.checkExistingAdvocateByEmail = async (email) => {
+  const existingAdvocate = await Advocate.findOne({
+    $or: [{ "contactDetails.email": email }],
+  });
+  return existingAdvocate;
+};
+
 advocateValidation.checkUserNameAvaiability = async (userName) => {
   const existingUserName = await Advocate.findOne({
     "personalDetails.userName": userName,
@@ -42,10 +49,10 @@ advocateValidation.checkExistingPhoneNumber = async (phone) => {
   return false;
 };
 
-advocateValidation.checkEmailIsVerified = async (email, enrollmentNumber) => {
+advocateValidation.checkEmailIsVerified = async (email) => {
   const existingAdvocate = await Advocate.findOne({
     "contactDetails.email": email,
-    "workDetails.enrollmentNumber": enrollmentNumber,
+    // "workDetails.enrollmentNumber": enrollmentNumber,
   });
   if (!existingAdvocate) {
     return false;
@@ -55,13 +62,9 @@ advocateValidation.checkEmailIsVerified = async (email, enrollmentNumber) => {
   return isVerified;
 };
 
-advocateValidation.checkAdvocateIsVerified = async (
-  email,
-  enrollmentNumber
-) => {
+advocateValidation.checkAdvocateIsVerified = async (email) => {
   const existingAdvocate = await Advocate.findOne({
     "contactDetails.email": email,
-    "workDetails.enrollmentNumber": enrollmentNumber,
   });
   if (!existingAdvocate) {
     return false;
@@ -79,10 +82,9 @@ advocateValidation.checkVerificationToken = async (res, verificationToken) => {
 };
 
 advocateValidation.checkAdvocatePassword = async (advocate) => {
-  const { email, password, enrollmentNumber } = advocate;
+  const { email, password } = advocate;
   const existingAdvocate = await Advocate.find({
     "contactDetails.email": email,
-    "workDetails.enrollmentNumber": enrollmentNumber,
   });
   const isPasswordVerified = await hash.comparePassword(
     password,
