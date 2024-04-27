@@ -9,6 +9,9 @@ const geoCode = require("../helpers/geoCode");
 //Variables
 const advocateService = {};
 
+//Datas
+const predefinedTags = require("../../datas/tags.js");
+
 advocateService.createAdvocate = async (advocateData) => {
   const newAdvocate = new Advocate(advocateData);
   await newAdvocate.save();
@@ -53,12 +56,21 @@ advocateService.createBlog = async (blogData) => {
 };
 
 advocateService.editBlog = async (advocateId, blogId, blogData) => {
-  const { title, description, comments, likes, liked, userId } = blogData;
+  const {
+    title,
+    description,
+    comments,
+    likes,
+    liked,
+    userId,
+    newTagsProbability,
+  } = blogData;
 
   const updateFields = {
     $set: {
       title: title,
       description: description,
+      newTagsProbability: newTagsProbability,
     },
   };
 
@@ -97,7 +109,10 @@ advocateService.getProfileDetails = async (advocateId) => {
 };
 
 advocateService.getProblems = async (skip, limit) => {
-  const problems = await Problem.find({}).skip(skip).limit(limit);
+  const problems = await Problem.find({})
+    .skip(skip)
+    .limit(limit)
+    .populate({ path: "user", select: "userId userName name profileImage" });
 
   problems.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -129,6 +144,22 @@ advocateService.changeWorkStatus = async (advocateId) => {
   );
 
   return !advocate.workStatus;
+};
+
+advocateService.updateBlogTagsProbabilty = async (tags) => {
+  const tagsProbability = new Array(20).fill(0);
+
+  console.log(tags);
+
+  await tags.forEach((tag) => {
+    const lowerCaseTag = tag.toLowerCase();
+    const index = predefinedTags.indexOf(lowerCaseTag);
+    if (index !== -1) {
+      tagsProbability[index]++;
+    }
+  });
+
+  return tagsProbability;
 };
 
 module.exports = advocateService;

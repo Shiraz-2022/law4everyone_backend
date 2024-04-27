@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { type } = require("os");
 // const db = require("../../config/db");
 
 const userSchema = new mongoose.Schema({
@@ -100,6 +101,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     ref: "problem",
   },
+  tagsProbability: [
+    {
+      type: Number,
+      required: true,
+    },
+  ],
 });
 
 const user = mongoose.model("user", userSchema);

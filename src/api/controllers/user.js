@@ -28,8 +28,8 @@ const userController = {};
 userController.signup = async (req, res, next) => {
   try {
     const profileImagePath = req.file.path;
-
     const profileImage = fs.readFileSync(profileImagePath);
+    const tagsProbability = new Array(20).fill(0);
 
     const {
       userName,
@@ -106,6 +106,7 @@ userController.signup = async (req, res, next) => {
       location: {
         coordinates: coordinates,
       },
+      tagsProbability: tagsProbability,
     });
 
     fs.unlinkSync(profileImagePath);
@@ -339,6 +340,16 @@ userController.commentOnBlog = async (req, res, next) => {
 
     const blog = await userValidation.checkExistingBlog(blogId);
 
+    const { tags } = blog;
+    const { tagsProbability } = existingUser;
+
+    const newTagsProbability = await userService.updateUserTagsProbabilty(
+      userId,
+      tags,
+      tagsProbability,
+      true
+    );
+
     if (!blog) {
       return res
         .status(HTTP_STATUS_CODES.NOT_FOUND)
@@ -355,6 +366,7 @@ userController.commentOnBlog = async (req, res, next) => {
       title: blog.title,
       description: blog.description,
       comments: comments,
+      newTagsProbability: newTagsProbability,
     });
 
     // const io = getIoInstance();
@@ -364,6 +376,7 @@ userController.commentOnBlog = async (req, res, next) => {
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The comment has been posted succesfully",
       updateBlog: updateBlog.comments,
+      newTagsProbability: newTagsProbability,
     });
   } catch (error) {
     next(error);
@@ -396,6 +409,17 @@ userController.likeOrUnlikeBlog = async (req, res, next) => {
 
     const liked = await userValidation.checkIfBlogIsLiked(blogId, userId);
 
+    const { tags } = blog;
+    const incOrDec = !liked;
+    const { tagsProbability } = existingUser;
+
+    const newTagsProbability = await userService.updateUserTagsProbabilty(
+      userId,
+      tags,
+      tagsProbability,
+      incOrDec
+    );
+
     const likes = {
       likedBy: userId,
       userType: "user",
@@ -418,6 +442,7 @@ userController.likeOrUnlikeBlog = async (req, res, next) => {
         ? "The post has been liked succesfully"
         : "The post has been disliked succesfully",
       updateBlog: updateBlog.likes,
+      newTagsProbability: newTagsProbability,
     });
   } catch (error) {
     next(error);

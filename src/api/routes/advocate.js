@@ -40,6 +40,7 @@ router.post("/sendCaseAcceptRequest", advocateController.sendCaseAcceptRequest);
 router.post("/likeOrUnlikeBlog", advocateController.likeOrUnlikeBlog);
 router.post("/commentOnBlog", advocateController.commentOnBlog);
 router.post("/changeWorkStatus", advocateController.changeWorkStatus);
+router.post("/viewUserProfile", advocateController.viewUserProfile);
 
 //Put
 router.put("/editBlog", advocateController.editBlog);

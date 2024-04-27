@@ -72,6 +72,12 @@ const blogSchema = new mongoose.Schema(
         type: String,
       },
     ],
+    tagsProbability: [
+      {
+        type: Number,
+        required: true,
+      },
+    ],
     timeStamp: {
       type: Date,
       required: true,

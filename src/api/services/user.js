@@ -12,6 +12,10 @@ const userValidation = require("../validations/user.js");
 
 //Helpers
 const geoCode = require("../helpers/geoCode.js");
+const tags = require("../../datas/tags.js");
+
+//Datas
+const predefinedTags = require("../../datas/tags.js");
 
 userService.createUser = async (userData) => {
   const newUser = new User(userData);
@@ -251,6 +255,32 @@ userService.filterByAreasOfExpertise = async (areasOfExpertise, advocates) => {
   });
 
   return filteredAdvocates;
+};
+
+userService.updateUserTagsProbabilty = async (
+  userId,
+  tags,
+  tagsProbability,
+  incOrDec
+) => {
+  await tags.forEach((tag) => {
+    const lowerCaseTag = tag.toLowerCase();
+    const index = predefinedTags.indexOf(lowerCaseTag);
+    if (index !== -1) {
+      if (incOrDec) {
+        tagsProbability[index]++;
+      } else {
+        tagsProbability[index]--;
+      }
+    }
+  });
+
+  await User.findOneAndUpdate(
+    { userId: userId },
+    { tagsProbability: tagsProbability }
+  );
+
+  return tagsProbability;
 };
 
 module.exports = userService;

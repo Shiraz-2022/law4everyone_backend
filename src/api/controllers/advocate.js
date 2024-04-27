@@ -249,10 +249,14 @@ advocateController.postBlog = async (req, res, next) => {
   try {
     const { title, description, tags } = req.body;
     const parsedTags = JSON.parse(tags);
-    console.log(parsedTags);
+
     const decodedToken = await JWT.checkJwtStatus(req);
     const imagePath = req.file.path;
     const image = fs.readFileSync(imagePath);
+
+    const newTagsProbability = await advocateService.updateBlogTagsProbabilty(
+      parsedTags
+    );
 
     const blogData = {
       advocateId: decodedToken.advocateId,
@@ -261,6 +265,7 @@ advocateController.postBlog = async (req, res, next) => {
       description: description,
       image: image,
       tags: parsedTags,
+      tagsProbability: newTagsProbability,
     };
 
     const newBlog = await advocateService.createBlog(blogData);
@@ -361,9 +366,9 @@ advocateController.getProfileDetails = async (req, res, next) => {
 
 advocateController.getProblems = async (req, res, next) => {
   try {
-    const skip = req.body.skip ? Number(req.body.skip) : 0;
-    const limit = req.body.limit ? Number(req.body.limit) : 10;
-    // const decodedToken = JWT.checkJwtStatus(req);
+    const skip = req.query.skip ? Number(req.query.skip) : 0;
+    const limit = req.query.limit ? Number(req.query.limit) : 5;
+
     const problems = await advocateService.getProblems(skip, limit);
 
     if (problems.length == 0) {
@@ -558,6 +563,36 @@ advocateController.changeWorkStatus = async (req, res, next) => {
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The work status has been changed succesfully",
       workStatus: workStatus,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.viewUserProfile = async (req, res, next) => {
+  try {
+    const { userId } = req.body;
+    const existingUser = await userService.getUserDetails(userId);
+
+    if (!existingUser) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No user found" });
+    }
+
+    const { userName, name, phone, email, profileImage } = existingUser;
+
+    const userInfo = {
+      userName,
+      name,
+      phone,
+      email,
+      profileImage,
+    };
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The user profile has been fetched succesfully",
+      userInfo: userInfo,
     });
   } catch (error) {
     next(error);
