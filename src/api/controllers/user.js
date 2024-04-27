@@ -223,7 +223,7 @@ userController.getProblems = async (req, res, next) => {
     const decodedToken = await JWT.checkJwtStatus(req);
     const problems = await userService.getProblems(decodedToken.userId);
 
-    res.status(HTTP_STATUS_CODES.OK).json({
+    return res.status(HTTP_STATUS_CODES.OK).json({
       message: "Problems recieved succesfully",
       problems: problems,
     });
@@ -245,7 +245,7 @@ userController.postProblem = async (req, res, next) => {
       deadline: deadline,
     };
     const newProblem = await userService.createProblem(problemData);
-    res.status(HTTP_STATUS_CODES.OK).json({
+    return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The problem has been saved succesfully",
       problem: newProblem,
     });
@@ -633,6 +633,54 @@ userController.advocateRequestResponse = async (req, res, next) => {
       requestResponse,
       userInfo
     );
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.viewAdvocateProfile = async (req, res, next) => {
+  try {
+    const { advocateId } = req.body;
+    const existingAdvocate = await advocateService.getProfileDetails(
+      advocateId
+    );
+
+    if (!existingAdvocate) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No advocate found" });
+    }
+
+    const {
+      personalDetails,
+      contactDetails,
+      educationDetails,
+      workDetails,
+      workStatus,
+    } = existingAdvocate;
+
+    const { userName, name, address, bio, profileImage } = personalDetails;
+    const { phone, email } = contactDetails;
+    const { nameOfUniversity } = educationDetails;
+    const { durationOfPractice, areasOfExpertise } = workDetails;
+
+    const advocateInfo = {
+      userName,
+      name,
+      address,
+      bio,
+      profileImage,
+      phone,
+      email,
+      nameOfUniversity,
+      durationOfPractice,
+      areasOfExpertise,
+    };
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The user profile has been fetched succesfully",
+      advocateInfo: advocateInfo,
+    });
   } catch (error) {
     next(error);
   }
