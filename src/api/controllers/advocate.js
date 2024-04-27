@@ -389,7 +389,7 @@ advocateController.getProblems = async (req, res, next) => {
 advocateController.sendCaseAcceptRequest = async (req, res, next) => {
   try {
     const decodedToken = await JWT.checkJwtStatus(req);
-    const { userId } = req.body;
+    const { userId, problemId } = req.body;
     const advocateDetails = await advocateService.getProfileDetails(
       decodedToken.advocateId
     );
@@ -399,6 +399,18 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
       return res
         .status(HTTP_STATUS_CODES.OK)
         .json({ message: "The user does not exist" });
+    }
+
+    const problem = await advocateService.getProblemDetails(problemId);
+
+    const { noOfRequests } = problem;
+
+    if (noOfRequests == 10) {
+      return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
+        message:
+          "10 advocates have already send request, please wait for one of them to be declined",
+        isCaseRequestAllowed: false,
+      });
     }
 
     const io = getIoInstance();
@@ -426,7 +438,7 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
     const notification = {
       title: "title1",
       description: "desc1",
-      data: advocateInfo,
+      advocateInfo: advocateInfo,
     };
 
     const updatedNotification = await userService.storeNotification(
@@ -436,8 +448,11 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
 
     io.to(userDetails.socketId).emit("caseAcceptRequest", advocateInfo, userId);
 
+    await advocateService.updateNoOfProblemRequests(problemId);
+
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The case accept request has been sent succesfully",
+      isCaseRequestAllowed: true,
       notification: updatedNotification,
     });
 

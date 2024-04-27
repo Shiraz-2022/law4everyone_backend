@@ -618,21 +618,36 @@ userController.advocateRequestResponse = async (req, res, next) => {
     const { requestResponse, advocateId } = req.body;
 
     const io = getIoInstance();
-    const existingUser = await userService.getUserDetails(userId);
+    const existingAdvocate = await advocateService.getProfileDetails(
+      advocateId
+    );
 
-    const { name, email } = existingUser;
+    if (!existingAdvocate) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No advocate found" });
+    }
 
-    const userInfo = {
-      userId,
+    const { personalDetails } = existingAdvocate;
+    const { userName, name, profileImage } = personalDetails;
+
+    const advocateInfo = {
+      advocateId,
+      userName,
       name,
-      email,
+      profileImage,
     };
 
-    io.to(existingUser.socketId).emit(
+    io.to(existingAdvocate.socketId).emit(
       "requestResponse",
       requestResponse,
-      userInfo
+      advocateInfo
     );
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "Request response has been send succesfully",
+      requestResponse: requestResponse,
+    });
   } catch (error) {
     next(error);
   }
@@ -675,12 +690,39 @@ userController.viewAdvocateProfile = async (req, res, next) => {
       nameOfUniversity,
       durationOfPractice,
       areasOfExpertise,
+      workStatus,
     };
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The user profile has been fetched succesfully",
       advocateInfo: advocateInfo,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.getUserNotifications = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const userId = decodedToken.userId;
+
+    const existingUser = await userService.getUserDetails(userId);
+
+    if (!existingUser) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No User found" });
+    }
+
+    const { notifications } = existingUser;
+
+    return res
+      .status(HTTP_STATUS_CODES.OK)
+      .json({
+        message: "Notifications fetched succesfully",
+        notifications: notifications,
+      });
   } catch (error) {
     next(error);
   }

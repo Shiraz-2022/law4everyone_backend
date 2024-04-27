@@ -25,6 +25,7 @@ router.get("/getBlogs", userController.getBlogs);
 router.get("/getProblems", userController.getProblems);
 router.get("/getUserProfile", userController.getUserProfile);
 router.get("/nearByAdvocates", userController.nearbyAdvocates);
+router.get("/getUserNotifications", userController.getUserNotifications);
 
 //Post
 router.post("/signup", upload.single("profileImage"), userController.signup);
@@ -45,6 +46,7 @@ router.post(
 );
 router.post("/searchAdvocateByName", userController.searchAdvocateByName);
 router.post("/viewAdvocateProfile", userController.viewAdvocateProfile);
+router.post("/advocateRequestResponse", userController.advocateRequestResponse);
 
 //Put
 router.put("/editProblem/:problemId", userController.editProblem);

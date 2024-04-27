@@ -79,8 +79,18 @@ const userSchema = new mongoose.Schema({
         description: {
           type: String,
         },
-        data: {
-          type: mongoose.Schema.Types.Mixed,
+        advocateInfo: {
+          type: {
+            userName: {
+              type: String,
+            },
+            name: {
+              type: String,
+            },
+            profileImage: {
+              type: mongoose.Schema.Types.Mixed,
+            },
+          },
         },
         timeStamp: {
           type: Date,

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { type } = require("os");
 
 const problemSchema = new mongoose.Schema(
   {
@@ -31,6 +32,10 @@ const problemSchema = new mongoose.Schema(
       type: Date,
       required: true,
       default: Date.now(),
+    },
+    noOfRequests: {
+      type: Number,
+      default: 0,
     },
   },
   {

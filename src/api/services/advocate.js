@@ -109,7 +109,7 @@ advocateService.getProfileDetails = async (advocateId) => {
 };
 
 advocateService.getProblems = async (skip, limit) => {
-  const problems = await Problem.find({})
+  const problems = await Problem.find({ status: "open" })
     .skip(skip)
     .limit(limit)
     .populate({ path: "user", select: "userId userName name profileImage" });
@@ -160,6 +160,19 @@ advocateService.updateBlogTagsProbabilty = async (tags) => {
   });
 
   return tagsProbability;
+};
+
+advocateService.getProblemDetails = async (problemId) => {
+  const problem = await Problem.findOne({ problemId: problemId });
+  return problem;
+};
+
+advocateService.updateNoOfProblemRequests = async (noOfRequests, problemId) => {
+  await Problem.findOneAndUpdate(
+    { problemId: problemId },
+    { noOfRequests: noOfRequests + 1 },
+    { new: true }
+  );
 };
 
 module.exports = advocateService;
