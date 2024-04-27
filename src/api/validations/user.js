@@ -54,4 +54,28 @@ userValidation.checkIfBlogIsLiked = async (blogId, userId) => {
   return like ? true : false;
 };
 
+userValidation.checkUserNameAvaiability = async (userName) => {
+  const existingUserName = await User.findOne({
+    userName: userName,
+  });
+
+  if (existingUserName != null) {
+    return true;
+  }
+
+  return false;
+};
+
+userValidation.checkExistingPhoneNumber = async (phone) => {
+  const existingPhoneNumber = await User.findOne({
+    phone: phone,
+  });
+
+  if (existingPhoneNumber != null) {
+    return true;
+  }
+
+  return false;
+};
+
 module.exports = userValidation;

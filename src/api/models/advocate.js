@@ -130,7 +130,26 @@ const advocateSchema = new mongoose.Schema({
       required: true,
     },
   },
-
+  casesHandled: [
+    {
+      type: {
+        userId: {
+          type: String,
+          ref: "user",
+        },
+        rating: {
+          type: Number,
+        },
+        review: {
+          type: String,
+        },
+      },
+    },
+  ],
+  workStatus: {
+    type: Boolean,
+    default: true,
+  },
   timeStamp: {
     type: Date,
     default: Date.now(),

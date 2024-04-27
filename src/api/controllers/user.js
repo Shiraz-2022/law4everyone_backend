@@ -31,13 +31,48 @@ userController.signup = async (req, res, next) => {
 
     const profileImage = fs.readFileSync(profileImagePath);
 
-    const { name, email, password, phone, district, city, zipCode, state } =
-      req.body;
+    const {
+      userName,
+      name,
+      email,
+      password,
+      phone,
+      district,
+      city,
+      zipCode,
+      state,
+    } = req.body;
     const existingUser = await userValidation.checkExistingUser(email);
     if (existingUser) {
       return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
         message: "User already exists. Please signin instead",
         isSignedUp: false,
+      });
+    }
+
+    const existingUserName = await userValidation.checkUserNameAvaiability(
+      userName
+    );
+
+    if (existingUserName) {
+      fs.unlinkSync(profileImagePath);
+      return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
+        message: "Username already exists",
+        isSignedUp: false,
+        isUserNameAvailable: false,
+      });
+    }
+
+    const existingPhoneNumber = await userValidation.checkExistingPhoneNumber(
+      phone
+    );
+
+    if (existingPhoneNumber) {
+      fs.unlinkSync(profileImagePath);
+      return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
+        message: "Phone number already exists",
+        isSignedUp: false,
+        isPhoneNumberAvailable: false,
       });
     }
     const verificationToken = Math.random().toString(36).substring(7);
@@ -55,6 +90,7 @@ userController.signup = async (req, res, next) => {
     const newUser = await userService.createUser({
       userId: uuid(),
       socketId: uuid(),
+      userName: userName,
       name,
       email,
       password: hashedPassword,
@@ -505,12 +541,16 @@ userController.getUserProfile = async (req, res, next) => {
         .status(HTTP_STATUS_CODES.NOT_FOUND)
         .json({ message: "No User found" });
     }
-    const { name, email, phone, profileImage } = existingUser;
+    const { userName, name, email, phone, profileImage, address } =
+      existingUser;
     const user = {
+      userId: userId,
+      userName: userName,
       name: name,
       email: email,
       phone: phone,
       profileImage: profileImage,
+      address: address,
     };
 
     return res
@@ -553,6 +593,21 @@ userController.advocateRequestResponse = async (req, res, next) => {
     const { requestResponse, advocateId } = req.body;
 
     const io = getIoInstance();
+    const existingUser = await userService.getUserDetails(userId);
+
+    const { name, email } = existingUser;
+
+    const userInfo = {
+      userId,
+      name,
+      email,
+    };
+
+    io.to(existingUser.socketId).emit(
+      "requestResponse",
+      requestResponse,
+      userInfo
+    );
   } catch (error) {
     next(error);
   }

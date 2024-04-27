@@ -4,10 +4,17 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
   userId: {
     type: String,
+    unique: true,
     required: true,
   },
   socketId: {
+    unique: true,
     type: String,
+  },
+  userName: {
+    type: String,
+    unique: true,
+    required: true,
   },
   name: {
     type: String,
@@ -15,6 +22,7 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
+    unique: true,
     required: true,
   },
   password: {
@@ -23,6 +31,7 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: Number,
+    unique: true,
     required: true,
   },
   address: {
@@ -62,16 +71,34 @@ const userSchema = new mongoose.Schema({
   },
   notifications: [
     {
-      title: String,
-      description: String,
-      data: mongoose.Schema.Types.Mixed,
-      timeStamp: Date,
-      read: Boolean,
+      type: {
+        title: {
+          type: String,
+        },
+        description: {
+          type: String,
+        },
+        data: {
+          type: mongoose.Schema.Types.Mixed,
+        },
+        timeStamp: {
+          type: Date,
+          default: Date.now(),
+          required: true,
+        },
+        read: {
+          type: Boolean,
+        },
+      },
     },
   ],
   profileImage: {
     type: mongoose.Schema.Types.Mixed,
     required: true,
+  },
+  problemId: {
+    type: String,
+    ref: "problem",
   },
 });
 

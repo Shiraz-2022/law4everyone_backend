@@ -72,7 +72,7 @@ advocateController.signup = async (req, res, next) => {
       return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
         message: "Username already exists",
         isSignedUp: false,
-        userNameAvailable: false,
+        isUserNameAvailable: false,
       });
     }
 
@@ -85,7 +85,7 @@ advocateController.signup = async (req, res, next) => {
       return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
         message: "Phone number already exists",
         isSignedUp: false,
-        phoneNumberAvailable: false,
+        isPhoneNumberAvailable: false,
       });
     }
 
@@ -248,7 +248,8 @@ advocateController.signin = async (req, res, next) => {
 advocateController.postBlog = async (req, res, next) => {
   try {
     const { title, description, tags } = req.body;
-    console.log(tags);
+    const parsedTags = JSON.parse(tags);
+    console.log(parsedTags);
     const decodedToken = await JWT.checkJwtStatus(req);
     const imagePath = req.file.path;
     const image = fs.readFileSync(imagePath);
@@ -259,7 +260,7 @@ advocateController.postBlog = async (req, res, next) => {
       title: title,
       description: description,
       image: image,
-      tags: tags,
+      tags: parsedTags,
     };
 
     const newBlog = await advocateService.createBlog(blogData);
@@ -379,8 +380,13 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
 
     const io = getIoInstance();
 
-    const { personalDetails, contactDetails, workDetails, educationDetails } =
-      advocateDetails;
+    const {
+      personalDetails,
+      contactDetails,
+      workDetails,
+      educationDetails,
+      advocateId,
+    } = advocateDetails;
 
     const { userName, name, address } = personalDetails;
     const { email, phone } = contactDetails;
@@ -391,13 +397,13 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
       userName,
       name,
       email,
+      advocateId,
     };
 
     const notification = {
       title: "title1",
       description: "desc1",
       data: advocateInfo,
-      timeStamp: Date.now(),
     };
 
     const updatedNotification = await userService.storeNotification(
