@@ -323,18 +323,37 @@ advocateController.deleteAccount = async (req, res, next) => {
 advocateController.getProfileDetails = async (req, res, next) => {
   try {
     const decodedToken = await JWT.checkJwtStatus(req);
-    const advocate = await advocateService.getProfileDetails(
-      decodedToken.advocateId
-    );
+    const advocateId = decodedToken.advocateId;
+    const advocate = await advocateService.getProfileDetails(advocateId);
     if (!advocate) {
       return res
         .status(HTTP_STATUS_CODES.NOT_FOUND)
         .json({ message: "The advocate doesnt exist" });
     }
+    const { personalDetails, contactDetails } = advocate;
+    const { userName, name, profileImage, address, bio, dateOfBirth } =
+      personalDetails;
+
+    const { email, phone } = contactDetails;
+
+    const { workStatus } = advocate;
+
+    const advocateDetails = {
+      advocateId: advocateId,
+      userName: userName,
+      name: name,
+      email: email,
+      phone: phone,
+      profileImage: profileImage,
+      address: address,
+      workStatus: workStatus,
+      bio: bio,
+      dateOfBirth: dateOfBirth,
+    };
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The profile details have been fetched succesfully",
-      advocate: advocate,
+      advocate: advocateDetails,
     });
   } catch (error) {
     next(error);
