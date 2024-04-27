@@ -120,4 +120,15 @@ advocateService.geoCodeAddress = async (address) => {
   return geoCodedAddress;
 };
 
+advocateService.changeWorkStatus = async (advocateId) => {
+  const advocate = await Advocate.findOne({ advocateId: advocateId });
+
+  await Advocate.findOneAndUpdate(
+    { advocateId: advocateId },
+    { workStatus: !advocate.workStatus }
+  );
+
+  return !advocate.workStatus;
+};
+
 module.exports = advocateService;

@@ -39,6 +39,7 @@ router.post("/deleteAccount", advocateController.deleteAccount);
 router.post("/sendCaseAcceptRequest", advocateController.sendCaseAcceptRequest);
 router.post("/likeOrUnlikeBlog", advocateController.likeOrUnlikeBlog);
 router.post("/commentOnBlog", advocateController.commentOnBlog);
+router.post("/changeWorkStatus", advocateController.changeWorkStatus);
 
 //Put
 router.put("/editBlog", advocateController.editBlog);

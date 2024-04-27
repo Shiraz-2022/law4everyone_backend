@@ -348,7 +348,6 @@ advocateController.getProfileDetails = async (req, res, next) => {
       address: address,
       workStatus: workStatus,
       bio: bio,
-      dateOfBirth: dateOfBirth,
     };
 
     return res.status(HTTP_STATUS_CODES.OK).json({
@@ -543,6 +542,22 @@ advocateController.commentOnBlog = async (req, res, next) => {
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The comment has been posted succesfully",
       updateBlog: updateBlog.comments,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.changeWorkStatus = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const advocateId = decodedToken.advocateId;
+
+    const workStatus = await advocateService.changeWorkStatus(advocateId);
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The work status has been changed succesfully",
+      workStatus: workStatus,
     });
   } catch (error) {
     next(error);
