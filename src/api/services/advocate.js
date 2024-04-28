@@ -108,13 +108,20 @@ advocateService.getProfileDetails = async (advocateId) => {
   return await Advocate.findOne({ advocateId: advocateId });
 };
 
-advocateService.getProblems = async (skip, limit) => {
-  const problems = await Problem.find({ status: "open" })
+advocateService.getProblems = async (skip, limit, advocateId) => {
+  const advocate = await Advocate.findOne({ advocateId: advocateId });
+  const { problemsRequested } = advocate;
+  console.log(problemsRequested);
+  const problems = await Problem.find({
+    status: "open",
+    problemId: { $nin: problemsRequested.map((problem) => problem.problemId) },
+  })
     .skip(skip)
     .limit(limit)
     .populate({ path: "user", select: "userId userName name profileImage" });
 
   problems.sort((a, b) => a.timestamp - b.timestamp);
+  console.log(problems.length);
 
   return problems;
 };

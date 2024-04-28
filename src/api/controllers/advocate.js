@@ -367,9 +367,11 @@ advocateController.getProfileDetails = async (req, res, next) => {
 advocateController.getProblems = async (req, res, next) => {
   try {
     const skip = req.query.skip ? Number(req.query.skip) : 0;
-    const limit = req.query.limit ? Number(req.query.limit) : 5;
+    const limit = req.query.limit ? Number(req.query.limit) : 7;
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const { advocateId } = decodedToken;
 
-    const problems = await advocateService.getProblems(skip, limit);
+    const problems = await advocateService.getProblems(skip, limit, advocateId);
 
     if (problems.length == 0) {
       return res.status(HTTP_STATUS_CODES.NOT_FOUND).json({
@@ -429,8 +431,8 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
     };
 
     const notification = {
-      title: "title1",
-      description: "desc1",
+      title: "caseAcceptRequest",
+      description: "your case has a request",
       advocateInfo: advocateInfo,
     };
 
