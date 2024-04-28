@@ -111,7 +111,6 @@ advocateService.getProfileDetails = async (advocateId) => {
 advocateService.getProblems = async (skip, limit, advocateId) => {
   const advocate = await Advocate.findOne({ advocateId: advocateId });
   const { problemsRequested } = advocate;
-  console.log(problemsRequested);
   const problems = await Problem.find({
     status: "open",
     problemId: { $nin: problemsRequested.map((problem) => problem.problemId) },
@@ -213,6 +212,42 @@ advocateService.getRequestedProblems = async (advocateId) => {
   ]);
 
   return advocate;
+};
+
+advocateService.updateProblemsHandled = async (
+  problemId,
+  advocateId,
+  userId
+) => {
+  const problemHandled = {
+    problemId: problemId,
+    userId: userId,
+    rating: 0,
+    review: "",
+  };
+  await Advocate.findOneAndUpdate(
+    { advocateId: advocateId },
+    { $push: { problemsHandled: problemHandled } },
+    { new: true }
+  );
+};
+
+advocateService.storeNotification = async (advocateId, notification) => {
+  const updatedAdvocate = await Advocate.findOneAndUpdate(
+    { advocateId: advocateId },
+    { $push: { notifications: notification } },
+    { new: true }
+  );
+
+  return updatedAdvocate;
+};
+
+advocateService.removeProblemFromRequestedProblems = async (
+  problemId,
+  advocateId
+) => {
+  await Advocate.findOneAndUpdate({ advocateId: advocateId }),
+    { $pull: { problemsRequested: { problemId } } };
 };
 
 module.exports = advocateService;

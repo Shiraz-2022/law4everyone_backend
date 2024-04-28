@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const problem = require("./problem");
 // const db = require("../../config/db");
 
 const advocateSchema = new mongoose.Schema(
@@ -138,6 +139,10 @@ const advocateSchema = new mongoose.Schema(
             type: String,
             ref: "user",
           },
+          problemId: {
+            type: String,
+            ref: "problem",
+          },
           rating: {
             type: Number,
           },
@@ -172,7 +177,57 @@ const advocateSchema = new mongoose.Schema(
         },
       },
     ],
+    notifications: [
+      {
+        type: {
+          title: {
+            type: String,
+          },
+          description: {
+            type: String,
+          },
+          userInfo: {
+            type: {
+              userId: {
+                type: String,
+              },
+              userName: {
+                type: String,
+              },
+              name: {
+                type: String,
+              },
+              profileImage: {
+                type: mongoose.Schema.Types.Mixed,
+              },
+            },
+          },
+          problemInfo: {
+            type: {
+              problemId: {
+                type: String,
+              },
+              title: {
+                type: String,
+              },
+              description: {
+                type: String,
+              },
+            },
+          },
+          timeStamp: {
+            type: Date,
+            default: Date.now(),
+            required: true,
+          },
+          read: {
+            type: Boolean,
+          },
+        },
+      },
+    ],
   },
+
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },

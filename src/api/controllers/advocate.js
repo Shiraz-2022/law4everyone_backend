@@ -418,15 +418,15 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
     const { personalDetails, contactDetails, workDetails, educationDetails } =
       advocateDetails;
 
-    const { userName, name, address } = personalDetails;
-    const { email, phone } = contactDetails;
-    const { nameOfUniversity, yearOfGraduation } = educationDetails;
-    const { durationOfPractice, areasOfExpertise } = workDetails;
+    const { userName, name, profileImage } = personalDetails;
+    // const { email } = contactDetails;
+    // const { nameOfUniversity, yearOfGraduation } = educationDetails;
+    // const { durationOfPractice, areasOfExpertise } = workDetails;
 
     const advocateInfo = {
       userName,
       name,
-      email,
+      profileImage,
       advocateId,
     };
 
@@ -443,7 +443,7 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
 
     const updatedNotification = updatedUser.notifications;
 
-    io.to(userDetails.socketId).emit("caseAcceptRequest", advocateInfo, userId);
+    io.to(userDetails.socketId).emit("caseAcceptRequest", updatedNotification);
 
     await advocateService.updateNoOfProblemRequests(noOfRequests, problemId);
 
@@ -639,6 +639,31 @@ advocateController.getRequestedProblems = async (req, res, next) => {
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The requested problems have been fetched succesfully",
       requestedProblems: requestedProblems,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.getNotifications = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const advocateId = decodedToken.advocateId;
+    const existingAdvocate = await advocateService.getProfileDetails(
+      advocateId
+    );
+
+    if (!existingAdvocate) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No advocatefound" });
+    }
+
+    const { notifications } = existingAdvocate;
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "Notifications fetched succesfully",
+      notifications: notifications,
     });
   } catch (error) {
     next(error);

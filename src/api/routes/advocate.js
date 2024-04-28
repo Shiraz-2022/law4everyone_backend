@@ -23,6 +23,7 @@ router.get("/verify", advocateController.verifyUser);
 router.get("/getProfileDetails", advocateController.getProfileDetails);
 router.get("/getProblems", advocateController.getProblems);
 router.get("/getRequestedProblems", advocateController.getRequestedProblems);
+router.get("/getNotifications", advocateController.getNotifications);
 
 //Post
 router.post(

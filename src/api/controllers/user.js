@@ -717,12 +717,89 @@ userController.getUserNotifications = async (req, res, next) => {
 
     const { notifications } = existingUser;
 
-    return res
-      .status(HTTP_STATUS_CODES.OK)
-      .json({
-        message: "Notifications fetched succesfully",
-        notifications: notifications,
-      });
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "Notifications fetched succesfully",
+      notifications: notifications,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+userController.onProblemRequestResponse = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const { userId } = decodedToken;
+    const { problemId, advocateId, requestResponse } = req.body;
+
+    const existingAdvocate = await advocateService.getProfileDetails(
+      advocateId
+    );
+
+    if (!existingAdvocate) {
+      return res
+        .status(HTTP_STATUS_CODES.NOT_FOUND)
+        .json({ message: "No advocate found" });
+    }
+
+    const existingUser = await userService.getUserDetails(userId);
+    const existingProblem = await advocateService.getProblemDetails(problemId);
+
+    const { userName, name, profileImage } = existingUser;
+    const { title, description } = existingProblem;
+
+    const problemInfo = {
+      problemId,
+      title,
+      description,
+    };
+
+    const userInfo = {
+      userName,
+      name,
+      profileImage,
+    };
+
+    const notification = {
+      title: "caseRequestResponse",
+      description: requestResponse
+        ? "your request has been accepted"
+        : "your request has been declined",
+      userInfo: userInfo,
+      problemInfo: problemInfo,
+    };
+
+    const updatedUserWithNotifications =
+      await advocateService.storeNotification(advocateId, notification);
+
+    const updatedNotifications = updatedUserWithNotifications.notifications;
+
+    if (requestResponse) {
+      await advocateService.updateProblemsHandled(
+        problemId,
+        advocateId,
+        userId
+      );
+    }
+
+    await advocateService.removeProblemFromRequestedProblems(
+      problemId,
+      advocateId
+    );
+
+    const io = getIoInstance();
+
+    io.to(existingAdvocate.socketId).emit(
+      "problemRequestResponse",
+      updatedNotifications
+    );
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: requestResponse
+        ? "Problem request has been accepted"
+        : "Problem request has been declined",
+      updatedNotifications: updatedNotifications,
+    });
   } catch (error) {
     next(error);
   }

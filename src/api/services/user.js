@@ -79,7 +79,7 @@ userService.getBlogs = async (skip, limit) => {
       },
       {
         path: "commentedByDetails",
-        select: "name",
+        select: "name userName profileImage",
       },
     ]);
 

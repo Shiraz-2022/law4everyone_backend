@@ -27,7 +27,11 @@ const initializeSocketServer = (server) => {
 
     // Handle disconnection
     socket.on("disconnect", function () {
-      console.log("Client disconnected.");
+      if (userType == "user") {
+        console.log("A user disconnected.");
+      } else if (userType == "advocate") {
+        console.log("An advocate disconnected.");
+      }
     });
   });
 };
