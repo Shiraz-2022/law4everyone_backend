@@ -121,7 +121,6 @@ advocateService.getProblems = async (skip, limit, advocateId) => {
     .populate({ path: "user", select: "userId userName name profileImage" });
 
   problems.sort((a, b) => a.timestamp - b.timestamp);
-  console.log(problems.length);
 
   return problems;
 };
@@ -209,7 +208,7 @@ advocateService.getRequestedProblems = async (advocateId) => {
     },
     {
       path: "problemRequestedProblemDetails",
-      select: "title description",
+      select: "title description deadline status",
     },
   ]);
 
