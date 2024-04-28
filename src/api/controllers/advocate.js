@@ -388,11 +388,13 @@ advocateController.getProblems = async (req, res, next) => {
 
 advocateController.sendCaseAcceptRequest = async (req, res, next) => {
   try {
+    const { problemId } = req.body;
     const decodedToken = await JWT.checkJwtStatus(req);
-    const { userId, problemId } = req.body;
-    const advocateDetails = await advocateService.getProfileDetails(
-      decodedToken.advocateId
-    );
+    const { advocateId } = decodedToken;
+    const problem = await advocateService.getProblemDetails(problemId);
+
+    const { noOfRequests, userId } = problem;
+    const advocateDetails = await advocateService.getProfileDetails(advocateId);
     const userDetails = await userService.getUserDetails(userId);
 
     if (!userDetails) {
@@ -400,10 +402,6 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
         .status(HTTP_STATUS_CODES.OK)
         .json({ message: "The user does not exist" });
     }
-
-    const problem = await advocateService.getProblemDetails(problemId);
-
-    const { noOfRequests } = problem;
 
     if (noOfRequests == 10) {
       return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
@@ -415,13 +413,8 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
 
     const io = getIoInstance();
 
-    const {
-      personalDetails,
-      contactDetails,
-      workDetails,
-      educationDetails,
-      advocateId,
-    } = advocateDetails;
+    const { personalDetails, contactDetails, workDetails, educationDetails } =
+      advocateDetails;
 
     const { userName, name, address } = personalDetails;
     const { email, phone } = contactDetails;
@@ -441,22 +434,28 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
       advocateInfo: advocateInfo,
     };
 
-    const updatedNotification = await userService.storeNotification(
+    const updatedUser = await userService.storeNotification(
       userId,
       notification
     );
 
+    const updatedNotification = updatedUser.notifications;
+
     io.to(userDetails.socketId).emit("caseAcceptRequest", advocateInfo, userId);
 
-    await advocateService.updateNoOfProblemRequests(problemId);
+    await advocateService.updateNoOfProblemRequests(noOfRequests, problemId);
+
+    await advocateService.updateProblemsRequested(
+      problemId,
+      userId,
+      advocateId
+    );
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The case accept request has been sent succesfully",
       isCaseRequestAllowed: true,
       notification: updatedNotification,
     });
-
-    // console.log("Received: ", advocateDetails.advocateId);
   } catch (error) {
     next(error);
   }
@@ -608,6 +607,36 @@ advocateController.viewUserProfile = async (req, res, next) => {
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "The user profile has been fetched succesfully",
       userInfo: userInfo,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.getRequestedProblems = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const { advocateId } = decodedToken;
+
+    const populatedAdvocate = await advocateService.getRequestedProblems(
+      advocateId
+    );
+
+    const {
+      problemsRequested,
+      problemRequestedUserDetails,
+      problemRequestedProblemDetails,
+    } = populatedAdvocate;
+
+    const requestedProblems = {
+      problemsRequested: problemsRequested,
+      userDetails: problemRequestedUserDetails,
+      problemDetails: problemRequestedProblemDetails,
+    };
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "The requested problems have been fetched succesfully",
+      requestedProblems: requestedProblems,
     });
   } catch (error) {
     next(error);

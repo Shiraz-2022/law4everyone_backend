@@ -22,6 +22,7 @@ const advocateController = require("../controllers/advocate");
 router.get("/verify", advocateController.verifyUser);
 router.get("/getProfileDetails", advocateController.getProfileDetails);
 router.get("/getProblems", advocateController.getProblems);
+router.get("/getRequestedProblems", advocateController.getRequestedProblems);
 
 //Post
 router.post(

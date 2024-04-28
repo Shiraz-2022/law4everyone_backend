@@ -175,4 +175,38 @@ advocateService.updateNoOfProblemRequests = async (noOfRequests, problemId) => {
   );
 };
 
+advocateService.updateProblemsRequested = async (
+  problemId,
+  userId,
+  advocateId
+) => {
+  const problemRequested = {
+    userId: userId,
+    problemId: problemId,
+    status: "pending",
+  };
+  await Advocate.findOneAndUpdate(
+    { advocateId: advocateId },
+    { $push: { problemsRequested: problemRequested } },
+    { new: true }
+  );
+};
+
+advocateService.getRequestedProblems = async (advocateId) => {
+  const advocate = await Advocate.findOne({
+    advocateId: advocateId,
+  }).populate([
+    {
+      path: "problemRequestedUserDetails",
+      select: "userName name profileImage",
+    },
+    {
+      path: "problemRequestedProblemDetails",
+      select: "title description",
+    },
+  ]);
+
+  return advocate;
+};
+
 module.exports = advocateService;
