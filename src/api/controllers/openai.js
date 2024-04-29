@@ -89,7 +89,10 @@ openaiController.translateAudio = async (req, res, next) => {
 
     res
       .status(HTTP_STATUS_CODES.OK)
-      .json({ response: response.choices[0].message.content });
+      .json({
+        response: response.choices[0].message.content,
+        transcription: transcription,
+      });
   } catch (error) {
     next(error);
   }
