@@ -628,11 +628,12 @@ userController.advocateRequestResponse = async (req, res, next) => {
         .json({ message: "No advocate found" });
     }
 
-    const { personalDetails } = existingAdvocate;
-    const { userName, name, profileImage } = personalDetails;
+    const existingUser = await userService.getUserDetails(userId);
 
-    const advocateInfo = {
-      advocateId,
+    const { userName, name, profileImage } = existingUser;
+
+    const userInfo = {
+      userId,
       userName,
       name,
       profileImage,
@@ -641,8 +642,10 @@ userController.advocateRequestResponse = async (req, res, next) => {
     io.to(existingAdvocate.socketId).emit(
       "requestResponse",
       requestResponse,
-      advocateInfo
+      userInfo
     );
+
+    //await userService.updateUserNotifications(userId);
 
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "Request response has been send succesfully",
@@ -730,7 +733,7 @@ userController.onProblemRequestResponse = async (req, res, next) => {
   try {
     const decodedToken = await JWT.checkJwtStatus(req);
     const { userId } = decodedToken;
-    const { problemId, advocateId, requestResponse } = req.body;
+    const { problemId, advocateId, requestResponse, notificationId } = req.body;
 
     const existingAdvocate = await advocateService.getProfileDetails(
       advocateId
@@ -761,10 +764,10 @@ userController.onProblemRequestResponse = async (req, res, next) => {
     };
 
     const notification = {
-      title: "caseRequestResponse",
+      title: "Case Request Response",
       description: requestResponse
-        ? "your request has been accepted"
-        : "your request has been declined",
+        ? "Your request has been accepted"
+        : "Your request has been declined",
       userInfo: userInfo,
       problemInfo: problemInfo,
     };
@@ -786,6 +789,8 @@ userController.onProblemRequestResponse = async (req, res, next) => {
       problemId,
       advocateId
     );
+
+    await userService.removeFromUserNotifications(userId, notificationId);
 
     const io = getIoInstance();
 

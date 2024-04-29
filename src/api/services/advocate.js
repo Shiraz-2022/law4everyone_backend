@@ -250,4 +250,23 @@ advocateService.removeProblemFromRequestedProblems = async (
     { $pull: { problemsRequested: { problemId } } };
 };
 
+advocateService.getMyBlogs = async (advocateId) => {
+  const advocate = await Advocate.findOne({ advocateId: advocateId }).populate({
+    path: "blogsByAdvocate",
+    select: "blogId title description comments likes",
+  });
+
+  return advocate;
+};
+
+advocateService.updateAdvocateBlogs = async (advocateId, blogId) => {
+  const advocate = await Advocate.findOneAndUpdate(
+    { advocateId: advocateId },
+    { $push: { blogs: { blogId } } },
+    { new: true }
+  );
+
+  return advocate;
+};
+
 module.exports = advocateService;

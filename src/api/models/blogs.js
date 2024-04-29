@@ -94,6 +94,7 @@ blogSchema.virtual("advocates", {
   ref: "advocate",
   localField: "advocateId",
   foreignField: "advocateId",
+  justOne: true,
 });
 
 blogSchema.virtual("commentedByDetails", {

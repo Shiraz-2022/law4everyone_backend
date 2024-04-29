@@ -90,7 +90,14 @@ const userSchema = new mongoose.Schema({
             profileImage: {
               type: mongoose.Schema.Types.Mixed,
             },
+            advocateId: {
+              type: String,
+              ref: "advocate",
+            },
           },
+        },
+        problemId: {
+          type: String,
         },
         timeStamp: {
           type: Date,

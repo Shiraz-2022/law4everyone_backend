@@ -46,7 +46,10 @@ router.post(
 );
 router.post("/searchAdvocateByName", userController.searchAdvocateByName);
 router.post("/viewAdvocateProfile", userController.viewAdvocateProfile);
-router.post("/advocateRequestResponse", userController.advocateRequestResponse);
+router.post(
+  "/advocateRequestResponse",
+  userController.onProblemRequestResponse
+);
 
 //Put
 router.put("/editProblem/:problemId", userController.editProblem);

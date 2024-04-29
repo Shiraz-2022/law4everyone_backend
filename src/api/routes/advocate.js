@@ -24,6 +24,7 @@ router.get("/getProfileDetails", advocateController.getProfileDetails);
 router.get("/getProblems", advocateController.getProblems);
 router.get("/getRequestedProblems", advocateController.getRequestedProblems);
 router.get("/getNotifications", advocateController.getNotifications);
+router.get("/getMyBlogs", advocateController.getMyBlogs);
 
 //Post
 router.post(

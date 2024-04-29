@@ -190,6 +190,7 @@ const advocateSchema = new mongoose.Schema(
             type: {
               userId: {
                 type: String,
+                ref: "user",
               },
               userName: {
                 type: String,
@@ -226,6 +227,15 @@ const advocateSchema = new mongoose.Schema(
         },
       },
     ],
+    blogs: [
+      {
+        type: {
+          blogId: {
+            type: String,
+          },
+        },
+      },
+    ],
   },
 
   {
@@ -246,6 +256,12 @@ advocateSchema.virtual("problemRequestedProblemDetails", {
   ref: "problem",
   localField: "problemsRequested.problemId",
   foreignField: "problemId",
+});
+
+advocateSchema.virtual("blogsByAdvocate", {
+  ref: "blog",
+  localField: "blogs.blogId",
+  foreignField: "blogId",
 });
 
 const advocate = mongoose.model("advocate", advocateSchema);

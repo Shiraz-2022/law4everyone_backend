@@ -6,6 +6,7 @@ const Advocate = require("../models/advocate.js");
 
 //Variables
 const userService = {};
+const { ObjectId } = require("mongodb");
 
 //Validation
 const userValidation = require("../validations/user.js");
@@ -281,6 +282,14 @@ userService.updateUserTagsProbabilty = async (
   );
 
   return tagsProbability;
+};
+
+userService.removeFromUserNotifications = async (userId, notificationId) => {
+  await User.findOneAndUpdate(
+    { userId: userId },
+    { $pull: { notifications: { _id: ObjectId(notificationId) } } },
+    { new: true }
+  );
 };
 
 module.exports = userService;

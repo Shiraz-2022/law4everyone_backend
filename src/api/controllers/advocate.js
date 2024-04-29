@@ -231,14 +231,16 @@ advocateController.signin = async (req, res, next) => {
       return res.status(HTTP_STATUS_CODES.UNAUTHORIZED).json({
         message: "Please verify your email first",
         isSignedIn: false,
+        isEmailVerified: false,
       });
     }
     // console.log(existingUser);
     const authToken = await JWT.generateAndStoreJwtAdvocate(existingAdvocate);
-    res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
+    return res.status(HTTP_STATUS_CODES.FORBIDDEN).json({
       message: "Advocate signed in succesfully",
       authToken: authToken,
       isSignedIn: true,
+      isEmailVerified: true,
     });
   } catch (error) {
     next(error);
@@ -251,6 +253,7 @@ advocateController.postBlog = async (req, res, next) => {
     const parsedTags = JSON.parse(tags);
 
     const decodedToken = await JWT.checkJwtStatus(req);
+    const { advocateId } = decodedToken;
     const imagePath = req.file.path;
     const image = fs.readFileSync(imagePath);
 
@@ -258,9 +261,11 @@ advocateController.postBlog = async (req, res, next) => {
       parsedTags
     );
 
+    const blogId = uuid();
+
     const blogData = {
-      advocateId: decodedToken.advocateId,
-      blogId: uuid(),
+      advocateId: advocateId,
+      blogId: blogId,
       title: title,
       description: description,
       image: image,
@@ -269,6 +274,10 @@ advocateController.postBlog = async (req, res, next) => {
     };
 
     const newBlog = await advocateService.createBlog(blogData);
+    const updatedAdvocate = await advocateService.updateAdvocateBlogs(
+      advocateId,
+      blogId
+    );
     fs.unlinkSync(req.file.path);
 
     return res.status(HTTP_STATUS_CODES.OK).json({
@@ -431,9 +440,10 @@ advocateController.sendCaseAcceptRequest = async (req, res, next) => {
     };
 
     const notification = {
-      title: "caseAcceptRequest",
-      description: "your case has a request",
+      title: "Case Accept Request",
+      description: "Your case has recieved a request",
       advocateInfo: advocateInfo,
+      problemId: problemId,
     };
 
     const updatedUser = await userService.storeNotification(
@@ -664,6 +674,25 @@ advocateController.getNotifications = async (req, res, next) => {
     return res.status(HTTP_STATUS_CODES.OK).json({
       message: "Notifications fetched succesfully",
       notifications: notifications,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+advocateController.getMyBlogs = async (req, res, next) => {
+  try {
+    const decodedToken = await JWT.checkJwtStatus(req);
+    const { advocateId } = decodedToken;
+
+    const advocate = await advocateService.getMyBlogs(advocateId);
+    console.log(advocate);
+
+    const { blogsByAdvocate } = advocate;
+
+    return res.status(HTTP_STATUS_CODES.OK).json({
+      message: "Blogs fetched succesfully",
+      blogsByAdvocate: blogsByAdvocate,
     });
   } catch (error) {
     next(error);
