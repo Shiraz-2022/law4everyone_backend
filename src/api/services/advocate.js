@@ -246,8 +246,11 @@ advocateService.removeProblemFromRequestedProblems = async (
   problemId,
   advocateId
 ) => {
-  await Advocate.findOneAndUpdate({ advocateId: advocateId }),
-    { $pull: { problemsRequested: { problemId } } };
+  await Advocate.findOneAndUpdate(
+    { advocateId: advocateId },
+    { $pull: { problemsRequested: { problemId } } },
+    { new: true }
+  );
 };
 
 advocateService.getMyBlogs = async (advocateId) => {

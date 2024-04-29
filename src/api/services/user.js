@@ -285,9 +285,11 @@ userService.updateUserTagsProbabilty = async (
 };
 
 userService.removeFromUserNotifications = async (userId, notificationId) => {
+  const notificationObjectId = new ObjectId(notificationId); // Convert notificationId to ObjectId
+
   await User.findOneAndUpdate(
     { userId: userId },
-    { $pull: { notifications: { _id: ObjectId(notificationId) } } },
+    { $pull: { notifications: { _id: notificationObjectId } } },
     { new: true }
   );
 };
